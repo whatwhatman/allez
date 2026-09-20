@@ -1,0 +1,28 @@
+# Cloudflare Workers 配置
+# 部署：先 npm i -D wrangler，再 npx wrangler deploy
+name = "allez-proxy"
+main = "index.js"
+compatibility_date = "2026-01-01"
+
+# 免费档每日 10 万次请求。真正的瓶颈是上游 Key 的额度，所以下面要限流。
+[vars]
+# 只允许你的站点调用。改成你的 Pages 域名，多个用逗号分隔。
+ALLOWED_ORIGIN = "https://你的用户名.github.io"
+# 每个 IP 每天的调用次数。免费 Key 额度有限，30 次够个人用一天。
+DAILY_LIMIT = "30"
+# 单次回复的 token 上限。一张扫描页 4000 够用，放开就是给别人白嫖。
+MAX_TOKENS = "4000"
+# 上游地址。带 /v1 前缀的 OpenAI 兼容端点，结尾不要带斜杠。
+UPSTREAM_BASE = "https://open.bigmodel.cn/api/paas/v4"
+
+# 真正的 Key 放这里，不要写进 vars —— vars 是明文进代码仓库的。
+#   npx wrangler secret put UPSTREAM_KEY
+#   npx wrangler secret put UPSTREAM_MODEL   # 可选，前端也能指定
+#
+# 想要跨实例精确计数，建个 KV：
+#   npx wrangler kv namespace create COUNTERS
+# 然后把下面两行的注释去掉，把 id 换成上面命令输出的 id。
+# 不配也能跑，只是限流退化为单实例内存计数（严格程度打折扣）。
+# [[kv_namespaces]]
+# binding = "COUNTERS"
+# id = "在这里填 KV 的 id"

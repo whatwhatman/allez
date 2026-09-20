@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Allez ! — 法语备考引擎 · DELF / DALF / TCF</title>
+<meta name="description" content="把你的法语课程材料（讲义 / 教材 / 真题 / 扫描件）拖进来，自动拆成考点图谱，按遗忘曲线排出每天的任务，直到你考过。纯浏览器运行，材料不上传服务器。">
+<meta name="theme-color" content="#1D4ED8">
+<meta property="og:title" content="Allez ! — 法语备考引擎">
+<meta property="og:description" content="材料 → 考点图谱 → 每天 20 分钟 → 通过考试。支持 PDF 与扫描件 OCR。">
+<meta property="og:type" content="website">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%231D4ED8'/%3E%3Ctext x='16' y='23' font-size='19' font-family='Georgia,serif' font-weight='bold' fill='white' text-anchor='middle'%3EA!%3C/text%3E%3C/svg%3E">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%231D4ED8'/%3E%3Ctext x='16' y='23' font-size='19' font-family='Georgia,serif' font-weight='bold' fill='white' text-anchor='middle'%3EA!%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="top">
+  <div class="top-in">
+    <div class="logo">Allez !<em>法语备考引擎 · DELF / DALF / TCF</em></div>
+    <nav class="tabs" id="tabs">
+      <button data-t="import" class="on">导入</button>
+      <button data-t="map">考点</button>
+      <button data-t="train">训练</button>
+      <button data-t="plan">排课</button>
+      <button data-t="report">验收</button>
+      <button data-t="sla">易错点</button>
+      <button data-t="setup">设置</button>
+      <button data-t="guide">指南</button>
+    </nav>
+  </div>
+</header>
+
+<div class="wrap">
+
+<!-- ============ 导入 ============ -->
+<section id="p-import">
+  <div class="card">
+    <h2>1. 倒入你的课程材料</h2>
+    <p class="sub">支持粘贴法语原文，或上传 PDF / 图片 / .txt / .md / .csv。可以是：ACLE 教材课文、学校讲义、词汇表、机经、DELF 真题阅读……材料越接近你的真实考试，抽出来的考点越准。<b>扫描件会自动走 OCR。</b></p>
+
+    <div class="row" style="margin-bottom:10px">
+      <div class="grow">
+        <label class="fld">目标考试</label>
+        <select id="exam">
+          <option value="A1">DELF A1</option>
+          <option value="A2">DELF A2</option>
+          <option value="B1" selected>DELF B1</option>
+          <option value="B2">DELF B2</option>
+          <option value="C1">DALF C1</option>
+          <option value="TEF">TEF / TCF</option>
+        </select>
+      </div>
+      <div class="grow">
+        <label class="fld">考试日期（决定每天排多少）</label>
+        <input type="date" id="examDate">
+      </div>
+      <div style="align-self:flex-end">
+        <button class="btn" id="loadSample">载入示例课文</button>
+      </div>
+      <div style="align-self:flex-end">
+        <input type="file" id="fileInput" accept=".pdf,.txt,.md,.csv,.text,.png,.jpg,.jpeg,.webp,application/pdf,image/*" style="display:none">
+        <button class="btn" onclick="document.getElementById('fileInput').click()">上传文件</button>
+      </div>
+    </div>
+
+    <div class="note hide" id="pdfProg"></div>
+    <div id="ocrPanel"></div>
+
+    <textarea id="src" placeholder="在此粘贴法语材料，或者把 PDF 拖进来…&#10;&#10;例如：&#10;Je m'appelle Léa et j'habite à Lyon depuis trois ans.&#10;Le week-end, je vais souvent au marché avec ma voisine…"></textarea>
+
+    <div class="row" style="margin-top:10px">
+      <button class="btn pri" id="btnAnalyze">解析并生成考点图谱</button>
+      <span class="mut" id="srcStat"></span>
+      <span style="margin-left:auto" class="mut">纯前端运行，材料不上传服务器</span>
+    </div>
+
+    <div id="importNote"></div>
+  </div>
+</section>
+
+<!-- ============ 考点 ============ -->
+<section id="p-map" class="hide">
+  <div class="grid g4" id="mapStats"></div>
+  <div id="mapNote"></div>
+
+  <div class="card">
+    <h2>考点词汇图谱</h2>
+    <p class="sub">系统按词频 + CEFR 分级自动标注。带 <span class="pill">推测</span> 标记的是离线引擎推断的等级，接上 API 后会由模型校准。</p>
+    <div class="row" style="margin-bottom:10px">
+      <select id="fLevel" style="width:auto">
+        <option value="">全部等级</option><option>A1</option><option>A2</option><option>B1</option><option>B2</option>
+      </select>
+      <select id="fPos" style="width:auto">
+        <option value="">全部词性</option><option value="n">名词</option><option value="v">动词</option><option value="adj">形容词</option><option value="adv">副词</option>
+      </select>
+      <input type="text" id="fKw" placeholder="搜索词或中文释义" style="width:200px">
+      <button class="btn" id="btnAddSelected">把当前筛选结果加入复习</button>
+      <button class="btn" id="btnAddTop50">加入最高频 50 个</button>
+    </div>
+    <div style="max-height:480px;overflow:auto">
+      <table id="vocabTable"></table>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>语法点频次</h2>
+    <p class="sub">DELF 阅卷里语法准确度占大权重。这里标出了材料中出现的结构，以及它将成为主攻语法点。</p>
+    <div class="grid g3" id="grammarGrid"></div>
+  </div>
+</section>
+
+<!-- ============ 训练 ============ -->
+<section id="p-train" class="hide">
+  <div class="card">
+    <div class="row">
+      <div class="switch" id="modeSwitch">
+        <button data-m="recognize" class="on">认 · 形义</button>
+        <button data-m="listen">认 · 听力</button>
+        <button data-m="use">用 · 完形</button>
+        <button data-m="conj">用 · 变位</button>
+        <button data-m="produce">生 · 输出</button>
+        <button data-m="read">读 · 受限输入</button>
+      </div>
+      <span class="mut" id="trainStat" style="margin-left:auto"></span>
+    </div>
+    <div id="quizArea"><div class="empty">先到「导入」解析材料，然后在这里开始训练。</div></div>
+  </div>
+</section>
+
+<!-- ============ 排课 ============ -->
+<section id="p-plan" class="hide">
+  <div class="grid g4" id="planStats"></div>
+  <div class="card">
+    <h2>今日任务</h2>
+    <p class="sub">按遗忘曲线到期的时间为准。每做完一次，系统会算出下一次复习时间。</p>
+    <div id="dueList"><div class="empty">目前没有到期卡片。</div></div>
+  </div>
+  <div class="card">
+    <h2>未来 14 天复习负荷预测</h2>
+    <div class="ring" id="forecast"></div>
+  </div>
+  <div class="card">
+    <h2>数据</h2>
+    <div class="row">
+      <button class="btn" id="btnExportAnki">导出 Anki CSV</button>
+      <button class="btn" id="btnReset2">清空全部学习数据</button>
+      <span class="mut">数据保存在本机浏览器 localStorage，不会同步。</span>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 验收 ============ -->
+<section id="p-report" class="hide">
+  <div class="grid g4" id="repStats"></div>
+  <div class="card">
+    <h2>能力雷达</h2>
+    <p class="sub">按 CEFR 等级与语法模块的掌握度估算。红色越往外，说明越需要补救。</p>
+    <div id="radar" style="display:flex;justify-content:center"></div>
+  </div>
+  <div class="card">
+    <h2>考纲覆盖度</h2>
+    <p class="sub">目前与你目标等级核心词表的重合情况（离线版内置约 400 词核心词表）。</p>
+    <div id="coverage"></div>
+  </div>
+  <div class="card">
+    <h2>弱项清单</h2>
+    <div id="weakList"></div>
+  </div>
+</section>
+
+<!-- ============ 易错点 ============ -->
+<section id="p-sla" class="hide">
+  <div class="card">
+    <h2>你的材料里检测到的易错点</h2>
+    <p class="sub">这是启发式规则扫描，不是完整语法引擎，会有误报。它的价值是：在你真正的材料上，把高频踩坑点标出来。</p>
+    <div id="slaFound"></div>
+  </div>
+  <div class="card">
+    <h2>中文母语者法语易错点库</h2>
+    <p class="sub">这是这个产品最应该沉淀的资产。每一条都对应一个「因为中文没有这个范畴 → 所以你天然会错」的机制。</p>
+    <div id="slaLib"></div>
+  </div>
+</section>
+
+<!-- ============ 设置 ============ -->
+<section id="p-setup" class="hide">
+  <div class="card">
+    <h2>接入模型（可选）</h2>
+    <div class="note"><b>没有 Key 也能用。</b>离线规则引擎负责抽词、CEFR 分级、易错点检测和变位练习。接入 Key 后，中文释义会自动补齐并校准、真题式完形和阅后的写作批改由模型完成。Key 只存在你的浏览器 localStorage，直接打到你选的接口地址。</div>
+    <div class="grid g2" style="margin-top:14px">
+      <div>
+        <label class="fld">服务商（选一个，地址会自动填好）</label>
+        <select id="apiPreset"></select>
+      </div>
+      <div id="apiKeyRow">
+        <label class="fld">API Key</label>
+        <input type="password" id="apiKey" placeholder="sk-...">
+      </div>
+      <div id="apiBaseRow">
+        <label class="fld">Endpoint（一般不用改）</label>
+        <input type="text" id="apiBase" placeholder="留空使用官方地址">
+      </div>
+      <div id="apiModelRow">
+        <label class="fld">模型</label>
+        <input type="text" id="apiModel" placeholder="自动填入">
+      </div>
+    </div>
+    <div class="note" id="presetNote" style="margin-top:12px"></div>
+    <div class="row" style="margin-top:12px">
+      <button class="btn pri" id="btnSaveApi">保存</button>
+      <button class="btn" id="btnTestApi">测试连接</button>
+      <span class="mut" id="apiStat"></span>
+    </div>
+    <details style="margin-top:14px">
+      <summary>为什么接了模型会强很多</summary>
+      <p class="mut" style="margin-top:8px">三件事离线做不了：① 给每个词生成贴合你上下文的中文释义，而不是词典冷冰冰的义项；② 生成真正的「受限文本」——严格控制在已学词汇 + i+1 范围内的法语短文，这是词汇自然复现的关键；③ 对你主动输出的法语做 CEFR 级批改（语法、性数配合、语体），而不只是找拼写。</p>
+    </details>
+  </div>
+
+  <div class="card">
+    <h2>扫描件识别（OCR）</h2>
+    <div class="note">两种引擎各有权衡：<b>视觉模型</b>质量最好、重音还原准，但需要 API Key，且图片会发给你配置的接口；<b>Tesseract.js</b> 在你浏览器本地跑、图片不出本机，但首次要从 CDN 下载约 15 MB 模型，且法语重音容易丢。</div>
+    <div class="grid g2" style="margin-top:14px">
+      <div>
+        <label class="fld">OCR 引擎</label>
+        <select id="ocrEngine">
+          <option value="auto">自动（有 Key 用视觉模型，否则 Tesseract）</option>
+          <option value="vision">视觉模型（需要 API Key）</option>
+          <option value="tesseract">Tesseract.js（本地，需下载模型）</option>
+        </select>
+      </div>
+      <div>
+        <label class="fld">视觉模型（留空用上面的模型）</label>
+        <input type="text" id="ocrModel" placeholder="claude-opus-4-6 / gpt-4o">
+      </div>
+      <div>
+        <label class="fld">Tesseract 语言包地址（一般留空）</label>
+        <input type="text" id="ocrLangPath" placeholder="下载失败时再改">
+      </div>
+      <div>
+        <label class="fld">单次最多识别页数</label>
+        <input type="text" id="ocrMaxPages" placeholder="20">
+      </div>
+    </div>
+    <div class="row" style="margin-top:12px">
+      <button class="btn pri" id="btnSaveOcr">保存 OCR 设置</button>
+      <span class="mut" id="ocrSaveStat"></span>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>数据备份</h2>
+    <div class="note">所有学习数据都在你这台浏览器里，<b>清缓存、换浏览器、换设备都会丢，而且找不回来。</b>下面这个按钮会把全部进度导出成一个 JSON 文件，换设备时再导回来就行。</div>
+    <div class="row" style="margin-top:12px">
+      <button class="btn pri" id="btnExportAll">导出全部数据（JSON）</button>
+      <button class="btn" id="btnImportAll">从备份恢复</button>
+      <input type="file" id="backupInput" accept=".json,application/json" style="display:none">
+      <span class="mut" id="backupStat"></span>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>关于这个原型</h2>
+    <p class="mut">技术：纯静态 HTML + 原生 JS，无构建、无依赖。调度算法用 SM-2 简化版，建议正式版换 FSRS（Anki 的新算法，对「每天能学几分钟」这种现实约束友好得多）。语音用浏览器自带的 fr-FR 合成，正式版建议换 Azure 法语神经语音或 ElevenLabs。</p>
+    <div class="row" style="margin-top:12px">
+      <button class="btn" id="btnReset">清空本机全部数据</button>
+      <button class="btn" id="btnGuide2">重看首次使用引导</button>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 指南 ============ -->
+<section id="p-guide" class="hide">
+  <div id="guideBody"></div>
+</section>
+
+<footer>Allez ! — 从「学法语」到「过考试」之间，缺的那条流水线</footer>
+</div>
+
+<script>
+// 装了 Service Worker 之后可以离线用、也能「添加到主屏幕」。
+// file:// 下注册会失败，直接忽略即可（本地双击打开不受影响）。
+if ('serviceWorker' in navigator && location.protocol.indexOf('http') === 0) {
+  addEventListener('load', () => { navigator.serviceWorker.register('sw.js').catch(() => {}); });
+}
+</script>
+<script src="data.js"></script>
+<script src="pdftext.js"></script>
+<script src="ocr.js"></script>
+<script src="engine.js"></script>
+<script src="app.js"></script>
+<script src="guide.js"></script>
+</body>
+</html>

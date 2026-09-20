@@ -1,0 +1,4506 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Allez ! — 法语备考引擎 · DELF / DALF / TCF</title>
+<meta name="description" content="把你的法语课程材料（讲义 / 教材 / 真题 / 扫描件）拖进来，自动拆成考点图谱，按遗忘曲线排出每天的任务，直到你考过。纯浏览器运行，材料不上传服务器。">
+<meta name="theme-color" content="#1D4ED8">
+<meta property="og:title" content="Allez ! — 法语备考引擎">
+<meta property="og:description" content="材料 → 考点图谱 → 每天 20 分钟 → 通过考试。支持 PDF 与扫描件 OCR。">
+<meta property="og:type" content="website">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%231D4ED8'/%3E%3Ctext x='16' y='23' font-size='19' font-family='Georgia,serif' font-weight='bold' fill='white' text-anchor='middle'%3EA!%3C/text%3E%3C/svg%3E">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%231D4ED8'/%3E%3Ctext x='16' y='23' font-size='19' font-family='Georgia,serif' font-weight='bold' fill='white' text-anchor='middle'%3EA!%3C/text%3E%3C/svg%3E">
+<style>
+:root{
+  --bg:#F7F6F3; --panel:#FFFFFF; --ink:#1F1E1C; --ink2:#5F5E5A; --ink3:#8A8983;
+  --line:#E3E1DB; --line2:#CFCCC4;
+  --brand:#1D4ED8; --brand-soft:#E8EFFB;
+  --accent:#0F6E56; --accent-soft:#E1F5EE;
+  --warn:#8A4F0B; --warn-soft:#FAEEDA;
+  --bad:#A32D2D; --bad-soft:#FCEBEB;
+  --r:10px;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  font-size:14px;line-height:1.6;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1080px;margin:0 auto;padding:0 20px 80px}
+header.top{border-bottom:1px solid var(--line);background:var(--panel);position:sticky;top:0;z-index:50}
+.top-in{max-width:1080px;margin:0 auto;padding:14px 20px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.logo{font-size:19px;font-weight:600;letter-spacing:.3px;color:var(--brand)}
+.logo em{font-style:normal;color:var(--ink3);font-size:12px;font-weight:400;margin-left:8px}
+nav.tabs{display:flex;gap:2px;margin-left:auto;flex-wrap:wrap}
+nav.tabs button{background:none;border:0;padding:7px 13px;border-radius:8px;cursor:pointer;
+  color:var(--ink2);font-size:13px;font-family:inherit}
+nav.tabs button:hover{background:var(--bg)}
+nav.tabs button.on{background:var(--brand-soft);color:var(--brand);font-weight:500}
+.pill{font-size:11px;padding:2px 8px;border-radius:20px;background:var(--bg);color:var(--ink2);border:1px solid var(--line)}
+.pill.a2{background:var(--accent-soft);color:var(--accent);border-color:transparent}
+.pill.w{background:var(--warn-soft);color:var(--warn);border-color:transparent}
+.pill.bad{background:var(--bad-soft);color:var(--bad);border-color:transparent}
+
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:18px;margin-top:14px}
+.card h2{margin:0 0 4px;font-size:15px;font-weight:600}
+.card h3{margin:18px 0 8px;font-size:13px;font-weight:600;color:var(--ink2)}
+.sub{color:var(--ink3);font-size:12px;margin:0 0 12px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.grow{flex:1;min-width:200px}
+textarea,input[type=text],input[type=password],input[type=date],select{
+  width:100%;border:1px solid var(--line2);border-radius:8px;padding:9px 11px;font-size:13px;
+  font-family:inherit;background:#fff;color:var(--ink)}
+textarea{min-height:180px;line-height:1.7;resize:vertical}
+textarea:focus,input:focus,select:focus{outline:2px solid var(--brand-soft);border-color:var(--brand)}
+label.fld{display:block;font-size:12px;color:var(--ink2);margin-bottom:4px}
+button.btn{border:1px solid var(--line2);background:var(--panel);color:var(--ink);border-radius:8px;
+  padding:8px 14px;font-size:13px;cursor:pointer;font-family:inherit}
+button.btn:hover{border-color:var(--ink3)}
+button.btn.pri{background:var(--brand);border-color:var(--brand);color:#fff}
+button.btn.pri:hover{filter:brightness(1.08)}
+button.btn.ghost{border:0;background:none;color:var(--brand);padding:6px 8px}
+button.btn:disabled{opacity:.45;cursor:not-allowed}
+.grid{display:grid;gap:10px}
+.g2{grid-template-columns:repeat(2,1fr)}
+.g3{grid-template-columns:repeat(3,1fr)}
+.g4{grid-template-columns:repeat(4,1fr)}
+@media(max-width:760px){.g3,.g4{grid-template-columns:repeat(2,1fr)}.g2{grid-template-columns:1fr}}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px}
+.stat .n{font-size:24px;font-weight:600;line-height:1.1}
+.stat .l{font-size:12px;color:var(--ink3);margin-top:2px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line)}
+th{font-size:12px;color:var(--ink3);font-weight:400}
+tbody tr:hover{background:#FBFAF7}
+.fr{font-family:"Times New Roman",Georgia,serif;font-size:15px}
+.zh{color:var(--ink2);font-size:13px}
+.mut{color:var(--ink3);font-size:12px}
+.bar{height:6px;background:var(--bg);border-radius:4px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--brand)}
+details{border:1px solid var(--line);border-radius:8px;padding:10px 12px;margin-top:8px;background:#FCFBF9}
+summary{cursor:pointer;font-size:13px;color:var(--ink2)}
+.qbox{background:#FBFAF7;border:1px solid var(--line);border-radius:var(--r);padding:20px;margin-top:12px}
+.big{font-size:26px;font-weight:600;letter-spacing:.2px}
+.opts{display:grid;gap:8px;margin-top:14px;grid-template-columns:repeat(2,1fr)}
+@media(max-width:600px){.opts{grid-template-columns:1fr}}
+.opt{border:1px solid var(--line2);border-radius:8px;padding:10px 12px;cursor:pointer;background:#fff;text-align:left;font-family:inherit;font-size:13px;color:var(--ink)}
+.opt:hover{border-color:var(--brand)}
+.opt.ok{background:var(--accent-soft);border-color:var(--accent)}
+.opt.no{background:var(--bad-soft);border-color:var(--bad)}
+.fb{margin-top:12px;font-size:13px;padding:9px 12px;border-radius:8px}
+.fb.ok{background:var(--accent-soft);color:var(--accent)}
+.fb.no{background:var(--bad-soft);color:var(--bad)}
+.hint{font-size:12px;color:var(--ink3);margin-top:6px}
+input.inline{border:0;border-bottom:1px solid var(--ink3);background:transparent;width:auto;min-width:90px;
+  text-align:center;font-family:"Times New Roman",Georgia,serif;font-size:16px;padding:2px 4px;color:var(--brand)}
+input.inline:focus{outline:none;border-color:var(--brand)}
+.sent{font-family:"Times New Roman",Georgia,serif;font-size:16px;line-height:2.1}
+.chip{display:inline-flex;align-items:center;gap:5px;font-size:12px;padding:3px 9px;border-radius:20px;
+  background:var(--bg);border:1px solid var(--line);margin:0 5px 5px 0;color:var(--ink2)}
+.switch{display:flex;border:1px solid var(--line2);border-radius:8px;overflow:hidden}
+.switch button{border:0;background:#fff;padding:7px 12px;font-size:12px;cursor:pointer;font-family:inherit;color:var(--ink2)}
+.switch button.on{background:var(--brand);color:#fff}
+.note{background:var(--warn-soft);color:var(--warn);padding:10px 13px;border-radius:8px;font-size:12.5px;line-height:1.65}
+.note b{font-weight:600}
+.empty{text-align:center;padding:50px 20px;color:var(--ink3);font-size:13px}
+.hide{display:none!important}
+.ring{display:flex;align-items:center;justify-content:center;gap:12px}
+.acc{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:9px 12px;margin-top:6px}
+.acc .w{font-family:"Times New Roman",Georgia,serif;font-size:15px}
+kbd{background:var(--bg);border:1px solid var(--line2);border-bottom-width:2px;border-radius:5px;padding:1px 6px;font-size:11px;font-family:ui-monospace,monospace}
+footer{color:var(--ink3);font-size:12px;text-align:center;padding:24px 0}
+
+/* ---- 首次引导弹窗 ---- */
+.modal-back{position:fixed;inset:0;background:rgba(31,30,28,.42);z-index:200;
+  display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(2px)}
+.modal{background:var(--panel);border-radius:14px;max-width:460px;width:100%;
+  box-shadow:0 18px 50px rgba(0,0,0,.22);overflow:hidden}
+.modal-body{padding:26px 26px 8px}
+.modal-foot{display:flex;gap:8px;align-items:center;padding:14px 22px 18px}
+.gstep{font-size:11px;color:var(--ink3);letter-spacing:1.5px;text-transform:uppercase}
+.gtitle{margin:6px 0 10px;font-size:18px;font-weight:600}
+.ghead{font-size:13px;color:var(--brand);margin-bottom:10px}
+.gbody{margin:0;font-size:13.5px;line-height:1.85;color:var(--ink)}
+.gtip{margin-top:14px;font-size:12px;color:var(--ink2);background:var(--bg);
+  border-left:3px solid var(--brand);padding:8px 12px;border-radius:0 6px 6px 0}
+.gdots{display:flex;gap:5px;margin:18px 0 6px}
+.gdots i{width:6px;height:6px;border-radius:50%;background:var(--line2);display:block}
+.gdots i.on{background:var(--brand);width:18px;border-radius:3px}
+
+/* ---- 指南页 ---- */
+.gsteps{margin:0;padding-left:20px;font-size:13.5px;line-height:2}
+.gsteps b{color:var(--brand)}
+.gmode{border:1px solid var(--line);border-radius:8px;padding:10px 13px;margin-top:8px;
+  display:flex;gap:12px;align-items:baseline;background:#FCFBF9}
+.gmode b{flex:0 0 150px;font-size:13px;font-weight:600}
+.gmode span{font-size:12.5px;color:var(--ink2);line-height:1.7}
+@media(max-width:600px){.gmode{flex-direction:column;gap:4px}.gmode b{flex:none}}
+.gmode.ok{border-left:3px solid var(--accent)}
+.gmode.warn{border-left:3px solid var(--warn)}
+.gmode.bad{border-left:3px solid var(--bad)}
+
+/* ---- OCR 面板 ---- */
+.ocrbox{border:1px solid var(--warn);background:var(--warn-soft);border-radius:var(--r);padding:14px 16px;margin-top:12px}
+.ocrbox h3{margin:0 0 6px;font-size:14px;color:var(--warn)}
+.ocrbox .row{margin-top:10px}
+.ocrbox select,.ocrbox input[type=text]{width:auto;min-width:150px}
+.ocrpage{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.ocrpage span{font-size:11px;padding:2px 7px;border-radius:5px;background:var(--panel);border:1px solid var(--line);color:var(--ink3)}
+.ocrpage span.ok{background:var(--accent-soft);color:var(--accent);border-color:transparent}
+.ocrpage span.low{background:var(--warn-soft);color:var(--warn);border-color:transparent}
+.ocrpage span.empty,.ocrpage span.error{background:var(--bad-soft);color:var(--bad);border-color:transparent}
+
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="top-in">
+    <div class="logo">Allez !<em>法语备考引擎 · DELF / DALF / TCF</em></div>
+    <nav class="tabs" id="tabs">
+      <button data-t="import" class="on">导入</button>
+      <button data-t="map">考点</button>
+      <button data-t="train">训练</button>
+      <button data-t="plan">排课</button>
+      <button data-t="report">验收</button>
+      <button data-t="sla">易错点</button>
+      <button data-t="setup">设置</button>
+      <button data-t="guide">指南</button>
+    </nav>
+  </div>
+</header>
+
+<div class="wrap">
+
+<!-- ============ 导入 ============ -->
+<section id="p-import">
+  <div class="card">
+    <h2>1. 倒入你的课程材料</h2>
+    <p class="sub">支持粘贴法语原文，或上传 PDF / 图片 / .txt / .md / .csv。可以是：ACLE 教材课文、学校讲义、词汇表、机经、DELF 真题阅读……材料越接近你的真实考试，抽出来的考点越准。<b>扫描件会自动走 OCR。</b></p>
+
+    <div class="row" style="margin-bottom:10px">
+      <div class="grow">
+        <label class="fld">目标考试</label>
+        <select id="exam">
+          <option value="A1">DELF A1</option>
+          <option value="A2">DELF A2</option>
+          <option value="B1" selected>DELF B1</option>
+          <option value="B2">DELF B2</option>
+          <option value="C1">DALF C1</option>
+          <option value="TEF">TEF / TCF</option>
+        </select>
+      </div>
+      <div class="grow">
+        <label class="fld">考试日期（决定每天排多少）</label>
+        <input type="date" id="examDate">
+      </div>
+      <div style="align-self:flex-end">
+        <button class="btn" id="loadSample">载入示例课文</button>
+      </div>
+      <div style="align-self:flex-end">
+        <input type="file" id="fileInput" accept=".pdf,.txt,.md,.csv,.text,.png,.jpg,.jpeg,.webp,application/pdf,image/*" style="display:none">
+        <button class="btn" onclick="document.getElementById('fileInput').click()">上传文件</button>
+      </div>
+    </div>
+
+    <div class="note hide" id="pdfProg"></div>
+    <div id="ocrPanel"></div>
+
+    <textarea id="src" placeholder="在此粘贴法语材料，或者把 PDF 拖进来…&#10;&#10;例如：&#10;Je m'appelle Léa et j'habite à Lyon depuis trois ans.&#10;Le week-end, je vais souvent au marché avec ma voisine…"></textarea>
+
+    <div class="row" style="margin-top:10px">
+      <button class="btn pri" id="btnAnalyze">解析并生成考点图谱</button>
+      <span class="mut" id="srcStat"></span>
+      <span style="margin-left:auto" class="mut">纯前端运行，材料不上传服务器</span>
+    </div>
+
+    <div id="importNote"></div>
+  </div>
+</section>
+
+<!-- ============ 考点 ============ -->
+<section id="p-map" class="hide">
+  <div class="grid g4" id="mapStats"></div>
+  <div id="mapNote"></div>
+
+  <div class="card">
+    <h2>考点词汇图谱</h2>
+    <p class="sub">系统按词频 + CEFR 分级自动标注。带 <span class="pill">推测</span> 标记的是离线引擎推断的等级，接上 API 后会由模型校准。</p>
+    <div class="row" style="margin-bottom:10px">
+      <select id="fLevel" style="width:auto">
+        <option value="">全部等级</option><option>A1</option><option>A2</option><option>B1</option><option>B2</option>
+      </select>
+      <select id="fPos" style="width:auto">
+        <option value="">全部词性</option><option value="n">名词</option><option value="v">动词</option><option value="adj">形容词</option><option value="adv">副词</option>
+      </select>
+      <input type="text" id="fKw" placeholder="搜索词或中文释义" style="width:200px">
+      <button class="btn" id="btnAddSelected">把当前筛选结果加入复习</button>
+      <button class="btn" id="btnAddTop50">加入最高频 50 个</button>
+    </div>
+    <div style="max-height:480px;overflow:auto">
+      <table id="vocabTable"></table>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>语法点频次</h2>
+    <p class="sub">DELF 阅卷里语法准确度占大权重。这里标出了材料中出现的结构，以及它将成为主攻语法点。</p>
+    <div class="grid g3" id="grammarGrid"></div>
+  </div>
+</section>
+
+<!-- ============ 训练 ============ -->
+<section id="p-train" class="hide">
+  <div class="card">
+    <div class="row">
+      <div class="switch" id="modeSwitch">
+        <button data-m="recognize" class="on">认 · 形义</button>
+        <button data-m="listen">认 · 听力</button>
+        <button data-m="use">用 · 完形</button>
+        <button data-m="conj">用 · 变位</button>
+        <button data-m="produce">生 · 输出</button>
+        <button data-m="read">读 · 受限输入</button>
+      </div>
+      <span class="mut" id="trainStat" style="margin-left:auto"></span>
+    </div>
+    <div id="quizArea"><div class="empty">先到「导入」解析材料，然后在这里开始训练。</div></div>
+  </div>
+</section>
+
+<!-- ============ 排课 ============ -->
+<section id="p-plan" class="hide">
+  <div class="grid g4" id="planStats"></div>
+  <div class="card">
+    <h2>今日任务</h2>
+    <p class="sub">按遗忘曲线到期的时间为准。每做完一次，系统会算出下一次复习时间。</p>
+    <div id="dueList"><div class="empty">目前没有到期卡片。</div></div>
+  </div>
+  <div class="card">
+    <h2>未来 14 天复习负荷预测</h2>
+    <div class="ring" id="forecast"></div>
+  </div>
+  <div class="card">
+    <h2>数据</h2>
+    <div class="row">
+      <button class="btn" id="btnExportAnki">导出 Anki CSV</button>
+      <button class="btn" id="btnReset2">清空全部学习数据</button>
+      <span class="mut">数据保存在本机浏览器 localStorage，不会同步。</span>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 验收 ============ -->
+<section id="p-report" class="hide">
+  <div class="grid g4" id="repStats"></div>
+  <div class="card">
+    <h2>能力雷达</h2>
+    <p class="sub">按 CEFR 等级与语法模块的掌握度估算。红色越往外，说明越需要补救。</p>
+    <div id="radar" style="display:flex;justify-content:center"></div>
+  </div>
+  <div class="card">
+    <h2>考纲覆盖度</h2>
+    <p class="sub">目前与你目标等级核心词表的重合情况（离线版内置约 400 词核心词表）。</p>
+    <div id="coverage"></div>
+  </div>
+  <div class="card">
+    <h2>弱项清单</h2>
+    <div id="weakList"></div>
+  </div>
+</section>
+
+<!-- ============ 易错点 ============ -->
+<section id="p-sla" class="hide">
+  <div class="card">
+    <h2>你的材料里检测到的易错点</h2>
+    <p class="sub">这是启发式规则扫描，不是完整语法引擎，会有误报。它的价值是：在你真正的材料上，把高频踩坑点标出来。</p>
+    <div id="slaFound"></div>
+  </div>
+  <div class="card">
+    <h2>中文母语者法语易错点库</h2>
+    <p class="sub">这是这个产品最应该沉淀的资产。每一条都对应一个「因为中文没有这个范畴 → 所以你天然会错」的机制。</p>
+    <div id="slaLib"></div>
+  </div>
+</section>
+
+<!-- ============ 设置 ============ -->
+<section id="p-setup" class="hide">
+  <div class="card">
+    <h2>接入模型（可选）</h2>
+    <div class="note"><b>没有 Key 也能用。</b>离线规则引擎负责抽词、CEFR 分级、易错点检测和变位练习。接入 Key 后，中文释义会自动补齐并校准、真题式完形和阅后的写作批改由模型完成。Key 只存在你的浏览器 localStorage，直接打到你选的接口地址。</div>
+    <div class="grid g2" style="margin-top:14px">
+      <div>
+        <label class="fld">服务商（选一个，地址会自动填好）</label>
+        <select id="apiPreset"></select>
+      </div>
+      <div id="apiKeyRow">
+        <label class="fld">API Key</label>
+        <input type="password" id="apiKey" placeholder="sk-...">
+      </div>
+      <div id="apiBaseRow">
+        <label class="fld">Endpoint（一般不用改）</label>
+        <input type="text" id="apiBase" placeholder="留空使用官方地址">
+      </div>
+      <div id="apiModelRow">
+        <label class="fld">模型</label>
+        <input type="text" id="apiModel" placeholder="自动填入">
+      </div>
+    </div>
+    <div class="note" id="presetNote" style="margin-top:12px"></div>
+    <div class="row" style="margin-top:12px">
+      <button class="btn pri" id="btnSaveApi">保存</button>
+      <button class="btn" id="btnTestApi">测试连接</button>
+      <span class="mut" id="apiStat"></span>
+    </div>
+    <details style="margin-top:14px">
+      <summary>为什么接了模型会强很多</summary>
+      <p class="mut" style="margin-top:8px">三件事离线做不了：① 给每个词生成贴合你上下文的中文释义，而不是词典冷冰冰的义项；② 生成真正的「受限文本」——严格控制在已学词汇 + i+1 范围内的法语短文，这是词汇自然复现的关键；③ 对你主动输出的法语做 CEFR 级批改（语法、性数配合、语体），而不只是找拼写。</p>
+    </details>
+  </div>
+
+  <div class="card">
+    <h2>扫描件识别（OCR）</h2>
+    <div class="note">两种引擎各有权衡：<b>视觉模型</b>质量最好、重音还原准，但需要 API Key，且图片会发给你配置的接口；<b>Tesseract.js</b> 在你浏览器本地跑、图片不出本机，但首次要从 CDN 下载约 15 MB 模型，且法语重音容易丢。</div>
+    <div class="grid g2" style="margin-top:14px">
+      <div>
+        <label class="fld">OCR 引擎</label>
+        <select id="ocrEngine">
+          <option value="auto">自动（有 Key 用视觉模型，否则 Tesseract）</option>
+          <option value="vision">视觉模型（需要 API Key）</option>
+          <option value="tesseract">Tesseract.js（本地，需下载模型）</option>
+        </select>
+      </div>
+      <div>
+        <label class="fld">视觉模型（留空用上面的模型）</label>
+        <input type="text" id="ocrModel" placeholder="claude-opus-4-6 / gpt-4o">
+      </div>
+      <div>
+        <label class="fld">Tesseract 语言包地址（一般留空）</label>
+        <input type="text" id="ocrLangPath" placeholder="下载失败时再改">
+      </div>
+      <div>
+        <label class="fld">单次最多识别页数</label>
+        <input type="text" id="ocrMaxPages" placeholder="20">
+      </div>
+    </div>
+    <div class="row" style="margin-top:12px">
+      <button class="btn pri" id="btnSaveOcr">保存 OCR 设置</button>
+      <span class="mut" id="ocrSaveStat"></span>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>数据备份</h2>
+    <div class="note">所有学习数据都在你这台浏览器里，<b>清缓存、换浏览器、换设备都会丢，而且找不回来。</b>下面这个按钮会把全部进度导出成一个 JSON 文件，换设备时再导回来就行。</div>
+    <div class="row" style="margin-top:12px">
+      <button class="btn pri" id="btnExportAll">导出全部数据（JSON）</button>
+      <button class="btn" id="btnImportAll">从备份恢复</button>
+      <input type="file" id="backupInput" accept=".json,application/json" style="display:none">
+      <span class="mut" id="backupStat"></span>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>关于这个原型</h2>
+    <p class="mut">技术：纯静态 HTML + 原生 JS，无构建、无依赖。调度算法用 SM-2 简化版，建议正式版换 FSRS（Anki 的新算法，对「每天能学几分钟」这种现实约束友好得多）。语音用浏览器自带的 fr-FR 合成，正式版建议换 Azure 法语神经语音或 ElevenLabs。</p>
+    <div class="row" style="margin-top:12px">
+      <button class="btn" id="btnReset">清空本机全部数据</button>
+      <button class="btn" id="btnGuide2">重看首次使用引导</button>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 指南 ============ -->
+<section id="p-guide" class="hide">
+  <div id="guideBody"></div>
+</section>
+
+<footer>Allez ! — 从「学法语」到「过考试」之间，缺的那条流水线</footer>
+</div>
+
+<script>
+// 装了 Service Worker 之后可以离线用、也能「添加到主屏幕」。
+// file:// 下注册会失败，直接忽略即可（本地双击打开不受影响）。
+if ('serviceWorker' in navigator && location.protocol.indexOf('http') === 0) {
+  addEventListener('load', () => { navigator.serviceWorker.register('sw.js').catch(() => {}); });
+}
+</script>
+<script>
+/* Allez! 法语备考引擎 — 数据层
+   全部离线数据：法语词典（含 CEFR 等级与中文义）、停用词、不规则动词变位、母语负迁移易错点库。 */
+
+/* ---------- 1. 法语停用词 + 功能词 ---------- */
+const FR_STOP = new Set(`
+le la les l un une des du de d au aux a à de par pour avec sans dans sur sous chez vers dans entre depuis pendant avant après contre
+et ou ni mais donc or car que qui quoi dont où si comme quand lorsque alors ainsi aussi très trop tout toute tous toutes bien peu plus moins
+je tu il elle nous vous ils elles on ce cette cet ces mon ma mes ton ta tes son sa ses notre nos votre vos leur leurs
+est sont suis es sommes êtes était étaient être eu ai as avons avez ont avaient sera seraient été ont être être
+avait avaient aurait auraient avoir ayant eu eue eus eues
+ne pas plus jamais rien personne aucun aucune n ne me te se nous vous lui leur y en
+suis es est-ce est ce cest c j jai ja quil qui qua quon qua au eu aux du eu en la de des dois doit doivent fait faire faire
+ un une des du ce cette ces cet quel quelle quels quelles
+pour afin alors encore déjà souvent toujours jamais peutêtre peut toujours maintenant hier demain aujourd'hui
+voici voilà ici là où partout ailleurs comme comment combien pourquoi pourquoi quel
+ très très très même autres autre autre chose gens monde chose chose fois peu beaucoup trop
+ au moins soit ou encore puis enfin d abord tout dabord
+ près selon malgré jusque puis ensuite ainsi cependant néanmoins puisque quoique lorsque alors lorsque tandis donc or ni car
+ voici voilà partout ailleurs combien pourquoi comment quelle quelles quels quel dont celui celle ceux celles
+ zero un deux trois quatre cinq six sept huit neuf dix onze douze treize quatorze quinze seize
+ vingt trente quarante cinquante soixante quatrevingts cent mille million milliard premier première
+ lundi mardi mercredi jeudi vendredi samedi dimanche janvier février mars avril mai juin juillet août septembre octobre novembre décembre
+`.trim().split(/\s+/).filter(Boolean));
+
+/* ---------- 2. 核心法语词典 word|pos|CEFR|gender|中文字典义 ---------- */
+const DICT_RAW = `
+être|v|A1||是；存在
+avoir|v|A1||有
+aller|v|A1||去
+faire|v|A1||做；制造
+venir|v|A1||来
+partir|v|A1||出发
+arriver|v|A1||到达
+entrer|v|A1||进入
+sortir|v|A1||出去
+monter|v|A1||上（楼、车）
+descendre|v|A2||下（楼、车）
+tomber|v|A2||跌倒；掉落
+naître|v|B1||出生
+mourir|v|B1||死亡
+rester|v|A1||留下；停留
+devenir|v|A2||变成
+pouvoir|v|A1||能够
+vouloir|v|A1||想要
+devoir|v|A1||应该；欠
+prendre|v|A1||拿；乘（车）
+comprendre|v|A2||理解
+apprendre|v|A1||学习；得知
+mettre|v|A1||放；穿
+voir|v|A1||看见
+regarder|v|A1||看；观看
+dire|v|A1||说
+parler|v|A1||说话
+écouter|v|A1||听
+entendre|v|A2||听见
+lire|v|A1||阅读
+écrire|v|A1||写
+savoir|v|A1||知道；会
+connaître|v|A2||认识；熟悉
+croire|v|A2||相信
+penser|v|A1||想；认为
+trouver|v|A1||找到；觉得
+chercher|v|A1||寻找
+donner|v|A1||给
+demander|v|A1||问；要求
+répondre|v|A2||回答
+attendre|v|A1||等待
+payer|v|A1||支付
+acheter|v|A1||购买
+vendre|v|A2||卖
+manger|v|A1||吃
+boire|v|A1||喝
+dormir|v|A1||睡觉
+se réveiller|v|A2||醒来
+se lever|v|A1||起床
+se coucher|v|A2||就寝
+habiter|v|A1||居住
+vivre|v|A2||生活；居住
+travailler|v|A1||工作
+étudier|v|A1||学习（大学）
+apprendre|v|A1||学会
+enseigner|v|A2||教
+commencer|v|A1||开始
+finir|v|A1||结束
+continuer|v|A2||继续
+arrêter|v|A2||停止
+aimer|v|A1||喜欢
+adorer|v|A2||酷爱
+détester|v|A2||讨厌
+préférer|v|A2||更喜欢
+espérer|v|A2||希望
+attendre|v|A1||期待
+oublier|v|A2||忘记
+se souvenir|v|B1||记得
+choisir|v|A2||选择
+décider|v|A2||决定
+essayer|v|A2||尝试
+réussir|v|A2||成功
+utiliser|v|A2||使用
+emporter|v|B1||带走
+apporter|v|A2||带来
+montrer|v|A2||出示
+ouvrir|v|A1||打开
+fermer|v|A1||关闭
+nettoyer|v|A2||打扫
+préparer|v|A2||准备
+cuisiner|v|B1||烹饪
+aimer|v|A1||爱
+porter|v|B1||穿；携带
+mettre|v|A1||穿戴
+changer|v|A2||改变
+tomber|v|A2||落下
+plaire|v|B1||使愉快
+falloir|v|A2||必须（无人称）
+valoir|v|B1||值得
+voyager|v|A2||旅行
+visiter|v|A1||参观
+rencontrer|v|A2||遇见
+quitter|v|B1||离开
+revenir|v|A2||回来
+rentrer|v|A2||回家
+dépendre|v|B1||取决于
+ utilisé|v|A2||使用（过去分词）
+jour|n|A1|m|一天；日子
+journée|n|A2|f|一整天
+matin|n|A1|m|早晨
+soir|n|A1|m|傍晚
+nuit|n|A1|f|夜晚
+semaine|n|A1|f|星期
+mois|n|A1|m|月份
+année|n|A1|f|年份
+heure|n|A1|f|小时；时间
+temps|n|A1|m|时间；天气
+ aujourd'hui|adv|A1||今天
+ demain|adv|A1||明天
+ hier|adv|A1||昨天
+ maintenant|adv|A1||现在
+fois|n|A1|f|次
+moment|n|A2|m|时刻
+vie|n|A2|f|生活；生命
+monde|n|A1|m|世界；人们
+gens|n|A1|m||人们
+personne|n|A1|f|人；无人
+homme|n|A1|m|男人；人类
+femme|n|A1|f|女人；妻子
+enfant|n|A1|m|孩子
+garçon|n|A1|m|男孩；小伙子
+fille|n|A1|f|女孩；女儿
+ami|n|A1|m|朋友（男）
+amie|n|A1|f|朋友（女）
+parent|n|A2|m|父母；亲属
+père|n|A1|m|父亲
+mère|n|A1|f|母亲
+frère|n|A1|m|兄弟
+soeur|n|A1|f|姐妹
+mari|n|A2|m|丈夫
+copain|n|A1|m|伙伴
+voisin|n|A2|m|邻居
+professeur|n|A1|m|老师
+étudiant|n|A1|m|大学生（男）
+étudiante|n|A1|f|大学生（女）
+élève|n|A1|m|学生
+camarade|n|A2|m|同学
+école|n|A1|f|中小学
+université|n|A1|f|大学
+cours|n|A1|m|课程
+classe|n|A1|f|班级
+prof|n|A2|m||老师（口语）
+examen|n|A2|m|考试
+diplôme|n|B1|m|文凭
+maison|n|A1|f|房子；家
+appartement|n|A1|m|公寓
+chambre|n|A1|f|房间
+cuisine|n|A1|f|厨房
+salon|n|A2|m|客厅
+salle|n|A2|f|厅；室
+toilettes|n|A2|f||洗手间
+ville|n|A1|f|城市
+village|n|A2|m|村庄
+pays|n|A1|m|国家
+quartier|n|A2|m|街区
+rue|n|A1|f|街道
+route|n|A2|f|公路
+école|n|A1|f|学校
+magasin|n|A1|m|商店
+marché|n|A2|m|市场
+restaurant|n|A1|m|餐馆
+café|n|A1|m|咖啡馆；咖啡
+hôtel|n|A1|m|旅馆
+banque|n|A2|f|银行
+hôpital|n|A2|m|医院
+pharmacie|n|A2|f|药房
+gare|n|A2|f|火车站
+aéroport|n|A2|m|机场
+train|n|A1|m|火车
+avion|n|A1|m|飞机
+bus|n|A1|m|公共汽车
+métro|n|A1|m|地铁
+vélo|n|A1|m|自行车
+voiture|n|A1|f|汽车
+billet|n|A2|m|票
+bagage|n|B1|m|行李
+nourriture|n|A2|f|食物
+eau|n|A1|f|水
+pain|n|A1|m|面包
+viande|n|A2|f|肉
+légume|n|A2|m|蔬菜
+fruit|n|A2|m|水果
+fromage|n|A2|m|奶酪
+repas|n|A2|m|餐
+petit-déjeuner|n|A2|m|早餐
+déjeuner|n|A2|m|午餐
+dîner|n|A2|m|晚餐
+addition|n|B1|f|账单
+argent|n|A1|m|钱
+prix|n|A1|m|价格
+travail|n|A1|m|工作
+emploi|n|B1|m|职位
+bureau|n|A2|m|办公室；书桌
+entreprise|n|B1|f|企业
+métier|n|B1|m|职业
+salaire|n|B1|m|工资
+lettre|n|A2|f|信；字母
+livre|n|A1|m|书
+journal|n|A2|m|报纸
+document|n|B1|m|文件
+carte|n|A2|f|地图；卡片
+cinéma|n|A1|m|电影院
+film|n|A1|m|电影
+musique|n|A1|f|音乐
+spectacle|n|B1|m|演出
+théâtre|n|B1|m|剧院；戏剧
+ sport|n|A1|m|运动
+match|n|A2|m|比赛
+jeu|n|A2|m|游戏
+vacances|n|A1|f||假期
+voyage|n|A1|m|旅行
+ paysage|n|B1|m|风景
+mer|n|A1|f|海
+montagne|n|A2|f|山
+campagne|n|A2|f|乡村
+forêt|n|B1|f|森林
+plage|n|A1|f|海滩
+soleil|n|A1|m|太阳
+pluie|n|A2|f|雨
+neige|n|A2|f|雪
+temps|n|A1|m|天气
+problème|n|A1|m|问题
+question|n|A1|f|问题
+réponse|n|A2|f|回答
+exemple|n|A2|m|例子
+chose|n|A1|f|事情
+raison|n|A2|f|理由
+droite|n|A2|f|右；法律
+langue|n|A2|f|语言；舌头
+mot|n|A1|m|词
+phrase|n|A2|f|句子
+histoire|n|A1|f|历史；故事
+GRADE|n|B1|m|等级
+bon|adj|A1||好的
+bonne|adj|A1||好的（阴）
+mauvais|adj|A1||坏的
+grand|adj|A1||大的；高的
+petit|adj|A1||小的
+jeune|adj|A1||年轻的
+vieux|adj|A1||老的
+nouveau|adj|A1||新的
+nouvelle|adj|A1||新的（阴）
+ancien|adj|B1||旧的；从前的
+beau|adj|A1||美丽的
+joli|adj|A2||漂亮的
+content|adj|A1||高兴的
+heureux|adj|A2||幸福的
+triste|adj|A2||悲伤的
+fatigué|adj|A1||疲劳的
+malade|adj|A2||生病的
+gentil|adj|A2||亲切的
+sympathique|adj|A2||讨人喜欢的
+facile|adj|A1||容易的
+difficile|adj|A1||困难的
+important|adj|A2||重要的
+possible|adj|A2||可能的
+nécessaire|adj|B1||必要的
+utile|adj|A2||有用的
+prêt|adj|A2||准备好的
+cher|adj|A2||贵的；亲爱的
+chaud|adj|A1||热的
+froid|adj|A1||冷的
+rapide|adj|A2||快的
+ lent|adj|A2||慢的
+premier|adj|A2||第一
+dernier|adj|A2||最后的
+même|adj|A2||同样的
+tel|adj|B1||这样的
+prochain|adj|A2||下一个
+seul|adj|A2||单独的
+tout|adj|A1||全部的
+libre|adj|A2||自由的；空闲的
+très|adv|A1||非常
+trop|adv|A1||太
+peu|adv|A1||少
+beaucoup|adv|A1||很多
+ toujours|adv|A1||总是
+jamais|adv|A1||从不
+souvent|adv|A1||经常
+rarement|adv|A2||很少
+déjà|adv|A1||已经
+encore|adv|A1||还；再
+vite|adv|A2||快
+bien|adv|A1||好
+mal|adv|A2||坏
+vraiment|adv|A2||真的
+ ici|adv|A1||这里
+là|adv|A1||那里
+ensemble|adv|A2||一起
+alors|adv|A1||那么
+aujourd'hui|adv|A1||今天
+beaucoup|adv|A1||许多
+avec|p|A1||和…一起
+sans|p|A1||没有
+dans|p|A1||在…里
+sur|p|A1||在…上
+sous|p|A2||在…下
+pour|p|A1||为了
+par|p|A1||被；经由
+avant|p|A2||在…之前
+après|p|A2||在…之后
+pendant|p|A2||在…期间
+depuis|p|B1||自从
+entre|prep|A2||在…之间
+vers|p|B1||朝；大约
+chez|p|A2||在…家
+ contre|p|B1||反对
+car|conj|A2||因为
+donc|conj|A2||因此
+mais|conj|A1||但是
+ou|conj|A1||或者
+si|conj|A2||如果；是否
+quand|conj|A1||当…时候
+ parce que|conj|A2||因为
+pendant que|conj|B1||当…期间
+ bien que|conj|B2||虽然
+afin que|conj|B2||以便
+alors que|conj|B2||然而
+et|conj|A1||和
+ chose|n|A1|f|事物
+ état|n|B1|m|状态；国家
+ cas|n|B2|m|情况
+ lieu|n|B1|m|地点
+ rue|n|A1|f|街
+ action|n|B1|f|行动
+ rôle|n|B1|m|角色
+ niveau|n|B2|m|水平
+ cours|n|A1|m|课
+ objet|n|B1|m|物品
+ face|n|B1|f|面；面对
+ fois|n|A1|f|回
+ plupart|n|B2|f|大部分
+ changement|n|B1|m|变化
+ climat|n|B1|m|气候
+ environnement|n|B1|m|环境
+ société|n|B1|f|社会
+ gouvernement|n|B2|m|政府
+ pays|n|A1|m|国
+ opinion|n|B2|f|观点
+ intérêt|n|B2|m|兴趣；利益
+ consequent|adj|B2||随之发生的
+ grâce|n|B2|f|感激；多亏
+ appeler|v|A2||叫；打电话
+ passer|v|A1||经过；度过
+ annoncer|v|B1||宣布
+ expliquer|v|A2||解释
+ inviter|v|A2||邀请
+ partager|v|A2||分享
+ réfléchir|v|B1||思考
+ réserver|v|A2||预订
+ terminer|v|A1||完成
+ installer|v|B1||安装；安顿
+ louer|v|B1||租用；出租
+ loger|v|B1||住宿
+ rouler|v|B1||开车；滚动
+ nager|v|A2||游泳
+ jouer|v|A1||玩；演奏
+ danser|v|A1||跳舞
+ chanter|v|A1||唱歌
+ conduire|v|B1||驾驶
+ traduire|v|B1||翻译
+ produire|v|B1||生产
+ réduire|v|B1||减少
+ construire|v|B1||建造
+ détruire|v|B1||摧毁
+ indiquer|v|B1||指出
+ présenter|v|A2||介绍；呈现
+ représenter|v|B1||代表
+ développer|v|B1||发展
+ participer|v|B1||参与
+ profiter|v|B1||利用；享受
+ améliorer|v|B1||改善
+ prévoir|v|B1||预见；计划
+ paraître|v|B1||显得
+ reconnaître|v|B1||认出
+ disparaître|v|B1||消失
+ apparaître|v|B1||出现
+ obtenir|v|B1||获得
+ maintenir|v|B2||维持
+ permettre|v|B1||允许
+ promettre|v|B2||承诺
+ surprendre|v|B1||使惊讶
+ entreprendre|v|B2||着手
+ devenir|v|A2||变成
+ revenir|v|A2||回来
+se reposer|v|A2||休息
+ s'intéresser|v|B1||对…感兴趣
+ se soucier|v|B2||关心
+ se demander|v|B1||自问
+ occuper|v|B1||占据
+ remplacer|v|B2||替代
+ augmenter|v|B1||增加
+ diminuer|v|B1||减少
+ durer|v|A2||持续
+ commencer|v|A1||开始
+ continuer|v|A2||继续
+ traverser|v|B1||穿过
+ emmener|v|B1||带走
+ rapporter|v|B2||带回
+ hésiter|v|B2||犹豫
+`;
+
+/* ---------- 3. 不规则动词  inf|pres6|subj6|futStem|pp,aux ---------- */
+const VERB_RAW = `
+être|suis,es,est,sommes,êtes,sont|sois,sois,soit,soyons,soyez,soient|ser|été,avoir
+avoir|ai,as,a,avons,avez,ont|aie,aies,ait,ayons,ayez,aient|aur|eu,avoir
+aller|vais,vas,va,allons,allez,vont|aille,ailles,aille,allions,alliez,aillent|ir|allé,être
+faire|fais,fais,fait,faisons,faites,font|fasse,fasses,fasse,fassions,fassiez,fassent|fer|fait,avoir
+pouvoir|peux,peux,peut,pouvons,pouvez,peuvent|puisse,puisses,puisse,pouissions,pouviez,puissent|pourr|pu,avoir
+vouloir|veux,veux,veut,voulons,voulez,veulent|veuille,veuilles,veuille,voulions,vouliez,veuillent|voudr|voulu,avoir
+devoir|dois,dois,doit,devons,devez,doivent|doive,doives,doive,devions,deviez,doivent|devr|dû,avoir
+venir|viens,viens,vient,venons,venez,viennent|vienne,viennes,vienne,venions,veniez,viennent|viendr|venu,être
+tenir|tiens,tiens,tient,tenons,tenez,tiennent|tienne,tiennes,tienne,tenions,teniez,tiennent|tiendr|tenu,avoir
+prendre|prends,prends,prend,prenons,prenez,prennent|prenne,prennes,prenne,prenions,preniez,prennent|prendr|pris,avoir
+comprendre|comprends,comprends,comprend,comprenons,comprennez,comprennent|comprenne,comprennes,comprenne,comprenions,compreniez,comprennent|comprendr|compris,avoir
+apprendre|apprends,apprends,apprend,apprenons,apprenez,apprennent|apprenne,apprennes,apprenne,apprenions,appreniez,apprennent|apprendr|appris,avoir
+mettre|mets,mets,met,mettons,mettez,mettent|mette,mettes,mette,mettions,mettiez,mettent|mettr|mis,avoir
+voir|vois,vois,voit,voyons,voyez,voient|voie,voies,voie,voyions,voyiez,voient|verr|vu,avoir
+dire|dis,dis,dit,disons,dites,disent|dise,dises,dise,disions,disiez,disent|dir|dit,avoir
+savoir|sais,sais,sait,savons,savez,savent|sache,saches,sache,sachions,sachiez,sachent|saur|su,avoir
+partir|pars,pars,part,partons,partez,partent|parte,partes,parte,partions,partiez,partent|partir|parti,être
+sortir|sors,sors,sort,sortons,sortez,sortent|sorte,sortes,sorte,sortions,sortiez,sortent|sortir|sorti,être
+écrire|écris,écris,écrit,écrivons,écrivez,écrivent|écrive,écrives,écrive,écrivions,écriviez,écrivent|écrir|écrit,avoir
+lire|lis,lis,lit,lisons,lisez,lisent|lise,lises,lise,lisions,lisiez,lisent|lir|lu,avoir
+boire|bois,bois,boit,buvons,buvez,boivent|boive,boives,boive,buvions,buviez,boivent|boir|bu,avoir
+connaître|connais,connais,connaît,connaissons,connaissez,connaissent|connaisse,connaisses,connaisse,connaissions,connaissiez,connaissent|connaîtr|connu,avoir
+recevoir|reçois,reçois,reçoit,recevons,recevez,reçoivent|reçoive,reçoives,reçoive,recevions,receviez,reçoivent|recevr|reçu,avoir
+ouvrir|ouvre,ouvres,ouvre,ouvrons,ouvrez,ouvrent|ouvre,ouvres,ouvre,ouvrions,ouvriez,ouvrent|ouvrir|ouvert,avoir
+offrir|offre,offres,offre,offrons,offrez,offrent|offre,offres,offre,offrions,offriez,offrent|offrir|offert,avoir
+dormir|dors,dors,dort,dormons,dormez,dorment|dorme,dormes,dorme,dormions,dormiez,dorment|dormir|dormi,avoir
+servir|sers,sers,sert,servons,servez,servent|serve,serves,serve,servions,serviez,servent|servir|servi,avoir
+courir|cours,cours,court,courons,courez,courent|coure,coures,coure,courions,couriez,courent|courr|couru,avoir
+croire|crois,crois,croit,croyons,croyez,croient|croie,croies,croie,croyions,croyiez,croient|croir|cru,avoir
+vivre|vis,vis,vit,vivons,vivez,vivent|vive,vives,vive,vivions,viviez,vivent|vivr|vécu,avoir
+suivre|suis,suis,suit,suivons,suivez,suivent|suive,suives,suive,suivions,suiviez,suivent|suivr|suivi,avoir
+naître|nais,nais,naît,naissons,naissez,naissent|naisse,naisses,naisse,naissions,naissiez,naissent|naîtr|né,être
+mourir|meurs,meurs,meurt,mourons,mourez,meurent|meure,meures,meure,mourions,mouriez,meurent|mourr|mort,être
+devoir|dois,dois,doit,devons,devez,doivent|doive,doives,doive,devions,deviez,doivent|devr|dû,avoir
+plaire|plais,plais,plaît,plaisons,plaisez,plaisent|plaise,plaises,plaise,plaisions,plaisiez,plaisent|plair|plu,avoir
+valoir|vaux,vaux,vaut,valons,valez,valent|vaille,vailles,vaille,valions,valiez,vaillent|vaudr|valu,avoir
+falloir|faut,faut,faut,faut,faut,faut|faille,failles,faille,faillions,failliez,faillent|faudr|fallu,avoir
+`;
+
+/* être 作助动词的动词（DR & MRS VANDERTRAMP 系列） */
+const ETRE_VERBS = new Set(['aller','venir','partir','arriver','entrer','sortir','monter','descendre','tomber','rester','devenir','naître','mourir','retourner','rentrer','revenir','venir','sortir','entrer','monter','tomber','naître','mourir','apparaître','partir','arriver']);
+
+/* ---------- 4. 中文母语者法语易错点库（负迁移） ---------- */
+const SLA_LIB = [
+  { id:'genre', name:'名词阴阳性混淆', level:'A1',
+    why:'中文没有性的范畴，中国学生最容易在这里丢分。',
+    wrong:'le maison / la problème', right:'la maison / le problème',
+    tip:'不要靠词尾猜。背单词时必须连着冠词背：la maison，不是 maison。词尾 -tion / -té / -sie / -esse / -ure 多为阴性；-ment / -isme / -eau / -oir / -age 多为阳性。' },
+  { id:'accord', name:'形容词 / 过去分词性数配合', level:'A2',
+    why:'中文形容词不变化，"美丽的女孩"没有任何标记，学生大脑里没有"配合"这个自动流程。',
+    wrong:'une fille intelligent / elle est allé à Paris', right:'une fille intelligente / elle est allée à Paris',
+    tip:'凡是女性名词（含复数）前，形容词一律加 -e / -es。用 être 构成的复合过去时，过去分词要和主语配合；用 avoir 时，只有当直接宾语提前才配合。' },
+  { id:'subj', name:'虚拟式该用不敢用', level:'B1',
+    why:'中文没有语气系统，"我希望他去"没有动词变形，学生本能地用直陈式。',
+    wrong:'Il faut que tu es à l’heure.', right:'Il faut que tu sois à l’heure.',
+    tip:'强制触发虚拟式的主句：il faut que / vouloir que / aimer que / bien que / avant que / pour que / à moins que。见到 que 就停一秒，判断要不要变虚拟。' },
+  { id:'pron', name:'宾语代词位置放错', level:'B1',
+    why:'中文代词位置和法语完全不同（"我把它给他" vs Je le lui donne）。',
+    wrong:'Je donne lui le livre. / Je le mange pas.', right:'Je lui donne le livre. / Je ne le mange pas.',
+    tip:'代词永远贴在变位动词前面；有原形动词时贴在原形动词前面。有多个代词时顺序：me/te/se/nous/vous → le/la/les → lui/leur → y → en。' },
+  { id:'articles', name:'部分冠词 vs 定冠词', level:'A2',
+    why:'中文没有冠词系统，"我喜欢咖啡"和"我喝了咖啡"在中文里一样，法语却完全不同。',
+    wrong:'Je bois le café tous les jours.（表习惯）', right:'Je bois du café tous les jours.',
+    tip:'表泛指 / 部分（"一些"）用 du / de la / des；表整体偏好或特指用 le / la / les。完全否定和数量副词后一律变 de。' },
+  { id:'aux', name:'复合过去时助动词选 être 还是 avoir', level:'A1',
+    why:'中国学生默认全用 avoir。',
+    wrong:'Je suis mangé une pomme. / Il a allé au cinéma.', right:'J’ai mangé une pomme. / Il est allé au cinéma.',
+    tip:'只有十余个动词（加上全部代词式动词）用 être 作助动词：aller venir partir arriver entrer sortir monter descendre tomber rester devenir naître mourir 等。其余全部 avoir。' },
+  { id:'neg', name:'ne 的省略与位置', level:'A2',
+    why:'口语里法国人几乎不说 ne，学生照着听力材料学，写 DELF 作文时就丢了分。',
+    wrong:'J’ai pas compris. （书面）', right:'Je n’ai pas compris. / Je n’ai rien vu.',
+    tip:'DELF/DALF 书面表达务必写完整的 ne ... pas/jamais/rien/plus/personne。ne 紧跟主语代词，pas 包住变位动词。' },
+  { id:'de', name:'de + le → du 的缩合', level:'A1',
+    why:'中文没有缩合概念。',
+    wrong:'J’ai besoin de le temps. / près de les arbres', right:'J’ai besoin du temps. / près des arbres',
+    tip:'de + le = du，de + les = des，à + le = au，à + les = aux。de 和 les、le 永远不能直接连写。' },
+  { id:'accent', name:'音符（é è ê à ù ç ô î）缺失', level:'A1',
+    why:'中文输入法打法语非常痛苦，学生习惯性省掉音符，DELF 阅卷会算拼写错误。',
+    wrong:'etre / ete / a cote', right:'être / été / à côté',
+    tip:'开一套法语键盘（macOS 用 ABC Extended，Windows 用 CAN 或国际键盘），或者在输入法里做自定义短语。é=e+Alt, è=e+` , ç 用 dead key。' },
+  { id:'en_y', name:'y 和 en 的遗漏', level:'B1',
+    why:'中文代词"在那里 / 一些"有时可以省略，法语必须补出。',
+    wrong:'Je vais à Paris.（回答 Tu vas à Paris ?）', right:'Oui, j’y vais. / J’en ai trois.',
+    tip:'代替 à + 地点 用 y；代替 de + 名词或部分数量用 en。两者都放在动词前。' },
+  { id:'imparfait', name:'未完成过去时 vs 复合过去时', level:'A2',
+    why:'中文动词没有时间体态，讲过去的事情全用"了"。',
+    wrong:'Quand j’ai eu dix ans, je suis allé souvent chez ma grand-mère.', right:'Quand j’avais dix ans, j’allais souvent chez ma grand-mère.',
+    tip:'未完成过去时 = 背景、习惯、持续状态；复合过去时 = 具体完成的动作。叙事时先用未完成打背景，再用复合过去讲事件。' },
+  { id:'que_qui', name:'关系代词 que / qui / dont / où', level:'B1',
+    why:'中文定语从句用"的"一把梭，法语要按从句内部缺什么成分来选。',
+    wrong:'La femme que habite ici. / Le livre que je parle.', right:'La femme qui habite ici. / Le livre dont je parle.',
+    tip:'缺主语 → qui；缺直接宾语 → que；缺 de + 名词 → dont；缺地点/时间状语 → où。' }
+];
+
+;
+/* ===========================================================
+   pdftext.js —— 零依赖 PDF 文本提取器
+   ------------------------------------------------------------
+   不依赖 pdf.js / CDN / 服务器。浏览器用原生 DecompressionStream
+   解压 FlateDecode，Node 下用 zlib。文件永远不离开本机。
+
+   支持：
+     · 页面树遍历（含间接引用、多 Kids）
+     · FlateDecode（zlib 头 / raw deflate 自动尝试）
+     · 字体编码：ToUnicode CMap（bfchar / bfrange）、
+       Differences 偏移、WinAnsi / MacRoman / Standard 标准表
+     · Type0(CID, 双字节) 与简单字体（单字节）
+     · 内容流操作符：Tj TJ ' " Tf Td TD T* Tm Tc Tw TL
+     · 行/段落重建：靠 y 位移与词间距阈值
+   不支持：加密 PDF、纯扫描件（没有文本层的图片 PDF）。
+   =========================================================== */
+
+/* ---------------- 运行环境适配 ---------------- */
+const IS_NODE = typeof module !== 'undefined' && module.exports;
+let _zlib = null;
+if (typeof require === 'function') { try { _zlib = require('zlib'); } catch (e) { /* 浏览器 */ } }
+
+async function inflateBytes(bytes) {
+  // Node 下走 zlib（同步、容错好）；浏览器下才用 DecompressionStream。
+  if (_zlib) {
+    try { return new Uint8Array(_zlib.inflateSync(Buffer.from(bytes))); } catch (e1) { /* 可能没 zlib 头 */ }
+    try { return new Uint8Array(_zlib.inflateRawSync(Buffer.from(bytes))); } catch (e2) { /* 损坏 */ }
+    try { return new Uint8Array(_zlib.inflateSync(Buffer.from(bytes), { finishFlush: _zlib.constants.Z_SYNC_FLUSH })); } catch (e3) { /* 放弃，转浏览器分支 */ }
+  }
+  if (typeof DecompressionStream === 'function') {
+    for (const fmt of ['deflate', 'deflate-raw']) {
+      try {
+        const ds = new DecompressionStream(fmt);
+        const chunks = [];
+        const pipe = (async () => {
+          const w = ds.writable.getWriter();
+          await w.write(bytes);
+          await w.close();
+        })().catch(() => {});
+        const reader = ds.readable.getReader();
+        for (;;) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          chunks.push(value);
+        }
+        await pipe.catch(() => {});
+        const total = chunks.reduce((n, c) => n + c.length, 0);
+        const out = new Uint8Array(total);
+        let o = 0;
+        chunks.forEach(c => { out.set(c, o); o += c.length; });
+        if (out.length) return out;
+      } catch (e) { /* 换下一种格式重试 */ }
+    }
+  }
+  throw new Error('FlateDecode 解压失败：这个 PDF 的数据流可能已损坏，或使用了不支持的压缩算法。');
+}
+
+/* ---------------- 标准编码表 ---------------- */
+function buildTable(str) { // 字符串索引即码位 + 0x80
+  const t = {};
+  for (let i = 0; i < str.length; i++) t[0x80 + i] = str[i];
+  return t;
+}
+
+const WIN_ANSI = buildTable(
+  '€\u0000‚ƒ„…†‡ˆ‰Š‹Œ\u0000Ž\u0000\u0000‘’“”•–—˜™š›œ\u0000žŸ' +
+  ' ¡¢£¤¥¦§¨©ª«¬­®¯°±²³´µ¶·¸¹º»¼½¾¿' +
+  'ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖ×ØÙÚÛÜÝÞß' +
+  'àáâãäåæçèéêëìíîïðñòóôõö÷øùúûüýþÿ'
+);
+
+const MAC_ROMAN = buildTable(
+  'ÄÅÇÉÑÖÜáàâäãåçéèêëíìîïñóòôöõúùûü†°¢£§•¶ß®©™´¨≠ÆØ∞±≤≥¥µ∂∑∏π∫ªºΩæø' +
+  '¿¡¬√ƒ≈∆«»… ÀÃÕŒœ–—“”‘’÷◊ÿŸ⁄€‹›ﬁﬂ‡·‚„‰ÂÊÁËÈÍÎÏÌÓÔÒÚÛÙıˆ˜¯˘˙˚¸˝˛ˇ'
+);
+
+/* StandardEncoding：只填有把握的码位，其余故意留空。
+   宁可丢一个字符，也不要把 è 错译成别的字母 —— 对法语这是灾难。 */
+let _STANDARD = null;
+function STANDARD() {
+  if (_STANDARD) return _STANDARD;
+  const NAMES = {
+    0xA0: 'space', 0xA1: 'exclamdown', 0xA2: 'cent', 0xA3: 'sterling',
+    0xA4: 'fraction', 0xA5: 'yen', 0xA6: 'florin', 0xA7: 'section',
+    0xA8: 'currency', 0xA9: 'quotesingle', 0xAA: 'quotedblleft',
+    0xAB: 'guilsinglleft', 0xAC: 'guilsinglright', 0xAD: 'fi', 0xAE: 'fl',
+    0xAF: 'endash', 0xB0: 'dagger', 0xB1: 'daggerdbl', 0xB2: 'periodcentered',
+    0xB3: 'paragraph', 0xB4: 'bullet', 0xB5: 'quotesinglbase', 0xB6: 'quotedblbase',
+    0xB7: 'quotedblright', 0xB8: 'quotedblleft', 0xB9: 'quotedblbase',
+    0xBA: 'quoteleft', 0xBB: 'quoteright', 0xBE: 'emdash'
+  };
+  _STANDARD = t;
+  return t;
+}
+
+/* 单字节码位 → Unicode（先查 Differences/ToUnicode，再落到标准表） */
+function baseEncode(code, font) {
+  if (font.map.has(code)) return font.map.get(code);
+  if (code < 0x80) return String.fromCharCode(code);
+  const tbl = font.base === 'winansi' ? WIN_ANSI
+    : font.base === 'macroman' ? MAC_ROMAN
+      : STANDARD();
+  return tbl[code] || '';
+}
+
+function glyphNameToUnicode(gn) {
+  // 常见 Adobe 字形名 → unicode（法语够用即可）
+  const SIMPLE = {
+    space: ' ', exclam: '!', quotedbl: '"', numbersign: '#', dollar: '$', percent: '%',
+    ampersand: '&', quoteright: '’', quoteleft: '‘', parenleft: '(', parenright: ')',
+    asterisk: '*', plus: '+', comma: ',', hyphen: '-', period: '.', slash: '/',
+    colon: ':', semicolon: ';', less: '<', equal: '=', greater: '>', question: '?', at: '@',
+    bracketleft: '[', backslash: '\\', bracketright: ']', asciicircum: '^', underscore: '_',
+    grave: '`', braceleft: '{', bar: '|', braceright: '}', asciitilde: '~',
+    quotesingle: "'", quotesinglbase: '‚', quotedblleft: '“', quotedblright: '”',
+    quotedblbase: '„', guillemotleft: '«', guillemotright: '»', guilsinglleft: '‹',
+    guilsinglright: '›', endash: '–', emdash: '—', bullet: '•', dagger: '†',
+    daggerdbl: '‡', ellipsis: '…', perthousand: '‰', fi: 'fi', fl: 'fl',
+    OE: 'Œ', oe: 'œ', AE: 'Æ', ae: 'æ', oslash: 'ø', Oslash: 'Ø', AEmacron: 'Ǣ', aemacron: 'ǣ',
+    copyright: '©', registered: '®', trademark: '™', degree: '°', nbspace: ' ', nbspace2: ' ',
+    sterling: '£', cent: '¢', yen: '¥', florin: 'ƒ', currency: '¤', section: '§',
+    fraction: '⁄', paragraph: '¶', bullet2: '․', fiLig: 'ﬁ', flLig: 'ﬂ',
+    uniFFFD: '�'
+  };
+  if (SIMPLE[gn]) return SIMPLE[gn];
+  const uni = gn.match(/^uni([0-9A-Fa-f]{4})$/) || gn.match(/^u([0-9A-Fa-f]{4})$/);
+  if (uni) return String.fromCharCode(parseInt(uni[1], 16));
+  const acc = gn.match(/^([a-zA-Z]+)(acute|grave|circumflex|dieresis|tilde|cedilla|ring|caron|breve|macron|ogonek)$/);
+  if (acc) {
+    const BASE = { a: 'a', e: 'e', i: 'i', o: 'o', u: 'u', y: 'y', n: 'n', c: 'c', A: 'A', E: 'E', I: 'I', O: 'O', U: 'U', N: 'N', C: 'C' };
+    const DIA = { acute: 0x0301, grave: 0x0300, circumflex: 0x0302, dieresis: 0x0308, tilde: 0x0303, cedilla: 0x0327, ring: 0x030A, caron: 0x030C, breve: 0x0306, macron: 0x0304, ogonek: 0x0328 };
+    if (BASE[acc[1]]) {
+      const pre = BASE[acc[1]] + String.fromCharCode(DIA[acc[2]]);
+      return pre.normalize('NFC');
+    }
+  }
+  return null;
+}
+
+/* CMap 里的 unicode 是 **UTF-16BE**，不是字节序列：
+   <0044> 是字母 "D"，拆成 "00"+"44" 会拼出 U+0000 + "D"。
+   必须先按 4 位十六进制（一个 UTF-16 码元）分组，这样 astral 平面
+   的代理对也能正确还原。 */
+function hexToUnicodeStr(h) {
+  const s = String(h).replace(/[^0-9A-Fa-f]/g, '');
+  if (!s) return '';
+  if (s.length % 4 === 0) {
+    const units = (s.match(/.{4}/g) || []).map(x => parseInt(x, 16));
+    return String.fromCharCode.apply(null, units);
+  }
+  return (s.match(/.{2}/g) || []).map(x => String.fromCharCode(parseInt(x, 16))).join('');
+}
+
+/* ---------------- 字典 / 名字解析 ---------------- */
+/* /W 里嵌了子数组： [3 [333] 15 [264] ...]
+   用朴素正则 /\[([\s\S]*?)\]/ 会在第一个内层 ] 就收尾，只解析到 "3 [333"。
+   必须做括号配平，宽度表才会完整。 */
+function balancedArrayAfter(body, key) {
+  const i = body.indexOf(key);
+  if (i < 0) return null;
+  const j = body.indexOf('[', i);
+  if (j < 0) return null;
+  let depth = 0;
+  for (let k = j; k < body.length; k++) {
+    if (body[k] === '[') depth++;
+    else if (body[k] === ']') { depth--; if (depth === 0) return body.slice(j + 1, k); }
+  }
+  return null;
+}
+
+// /W 条目两种写法： c [w1 w2 w3]  或  cfirst clast w
+function parseWEntries(inner, map) {
+  const toks = inner.match(/\[[\s\S]*?\]|-?[\d.]+/g) || [];
+  let i = 0;
+  while (i < toks.length) {
+    if (!/^-?[\d.]+$/.test(toks[i])) { i++; continue; }
+    const c = parseInt(toks[i], 10);
+    const n1 = toks[i + 1];
+    if (n1 && n1[0] === '[') {
+      (n1.slice(1, -1).match(/-?[\d.]+/g) || []).forEach((v, k) => map.set(c + k, parseFloat(v)));
+      i += 2;
+    } else if (n1 && /^-?[\d.]+$/.test(n1)) {
+      const last = parseInt(n1, 10);
+      const w = parseFloat(toks[i + 2] || '0');
+      for (let k = c; k <= last && k - c < 65535; k++) map.set(k, w);
+      i += 3;
+    } else i++;
+  }
+}
+
+function parseNameListBody(s) {
+  // 解析 /Differences [ 32 /space /exclam ... ] 的数组体
+  const out = [];
+  const re = /(-?\d+|\/[\w#.-]+)/g;
+  let m;
+  while ((m = re.exec(s)) !== null) out.push(m[1]);
+  return out;
+}
+
+function decodeName(n) {
+  if (n[0] !== '/') return null;
+  return n.slice(1).replace(/#([0-9A-Fa-f]{2})/g, (_, h) => String.fromCharCode(parseInt(h, 16)));
+}
+
+function pdfDictGet(body, key) {
+  // body 是对象字典的源文件串，返回值的原始串
+  const re = new RegExp('/' + key + '\\s*(\\/[\\w#.-]+|\\[[\\s\\S]*?\\]|\\([\\s\\S]*?\\)|<[0-9A-Fa-f\\s]*>|-?[\\d.]+|\\d+\\s+\\d+\\s+R)', 'm');
+  const m = body.match(re);
+  return m ? m[1] : null;
+}
+
+/* ---------------- 主提取流程 ---------------- */
+/**
+ * @param {Uint8Array} bytes PDF 文件字节
+ * @param {(pct:number,label:string)=>void} [onProgress]
+ * @returns {Promise<{text:string, pages:string[], pageCount:number, fonts:number, scanned:boolean}>}
+ */
+async function extractPdfText(bytes, onProgress) {
+  const noop = () => {};
+  const prog = onProgress || noop;
+  prog(5, '读取文件');
+
+  const SUPPORTS_INFLATE = !!_zlib || typeof DecompressionStream === 'function';
+  if (!SUPPORTS_INFLATE) {
+    throw new Error('当前浏览器不支持解压 PDF（需要原生 DecompressionStream）。请升级到较新版本的 Chrome / Edge / Safari 16.4+ / Firefox 113+。');
+  }
+  // 解压失败记为硬错误：压缩字节当文本继续跑只会产出乱码
+  let deflateFailed = false;
+
+  // 千万别用 TextDecoder('latin1')：WHATWG 规范里 latin1 是 windows-1252 的别名，
+  // 会把 0x80–0x9F 这些字节转义成 € ‚ ƒ，压缩流当场报废。
+  // 用分块 fromCharCode，避免一次性生成上亿个字符把内存撑爆。
+  const view = (typeof Buffer !== 'undefined' && Buffer.isBuffer(bytes))
+    ? new Uint8Array(bytes.buffer, bytes.byteOffset, bytes.byteLength) : bytes;
+  const raw = latin1(view);
+
+  if (!/%PDF-/.test(raw.slice(0, 1024))) {
+    if (!/%PDF-/.test(raw)) throw new Error('这不是一个 PDF 文件（可能上传错了，或者文件已损坏）。');
+  }
+  if (/\/Encrypt\b/.test(raw)) {
+    throw new Error('这个 PDF 被加密了（带权限密码）。请先用系统自带的预览导出一份无密码版本。');
+  }
+
+  /* --- 1. 建对象表（暴力扫描，兼容 xref 损坏的老 PDF） --- */
+  const objs = new Map();
+  const objRe = /(\d+)\s+(\d+)\s+obj\b/g;
+  let om;
+  const marks = [];
+  while ((om = objRe.exec(raw)) !== null) marks.push({ num: +om[1], start: om.index + om[0].length });
+  for (let i = 0; i < marks.length; i++) {
+    const endIdx = raw.indexOf('endobj', marks[i].start);
+    const stop = endIdx < 0 ? Math.min(raw.length, marks[i].start + 1e7) : endIdx;
+    objs.set(marks[i].num, raw.slice(marks[i].start, stop));
+  }
+
+  /* --- 1b. 摊平对象流（PDF 1.5+；macOS Quartz、pdf-lib 默认就这么写） ---
+     不处理的话这些 PDF 会被当成「空文档」，上面还会误报成扫描件。 */
+  for (const [num, body] of Array.from(objs)) {
+    if (!/\/ObjStm/.test(body)) continue;
+    const firstM = body.match(/\/First\s+(\d+)/);
+    const si2 = body.search(/\bstream\b/);
+    if (!firstM || si2 < 0) continue;
+    const first = +firstM[1];
+    let ds = si2 + 6;
+    if (body[ds] === '\r') ds++;
+    if (body[ds] === '\n') ds++;
+    const lenM = body.match(/\/Length\s+(\d+)/);
+    const e2 = lenM ? Math.min(body.length, ds + +lenM[1]) : body.indexOf('endstream', ds);
+    let data;
+    try {
+      data = await inflateBytes(Uint8Array.from(body.slice(ds, e2 < 0 ? body.length : e2), c => c.charCodeAt(0) & 0xff));
+    } catch (err) { continue; }
+    const head = latin1(data.subarray(0, Math.min(first, data.length)));
+    const pairs = (head.match(/(\d+)\s+(\d+)/g) || []).map(s => s.split(/\s+/).map(Number));
+    for (let i = 0; i < pairs.length; i++) {
+      const onum = pairs[i][0], off = pairs[i][1];
+      const end = i + 1 < pairs.length ? pairs[i + 1][1] : data.length - first;
+      objs.set(onum, latin1(data.subarray(first + off, first + end)));
+    }
+  }
+  prog(15, '建立对象索引');
+
+  /* --- 2. 取流（解压） --- */
+  const streamCache = new Map();
+  async function streamOf(num) {
+    if (streamCache.has(num)) return streamCache.get(num);
+    let body = objs.get(num) || '';
+    let refAGAIN = body.match(/^\s*([\s\S]*?)\s+(\d+)\s+(\d+)\s+R\s*$/);
+    // 处理 Contents 指向裸流的间接引用链
+    let hop = 0;
+    while (refAGAIN && hop++ < 5) {
+      const t = objs.get(+refAGAIN[2]);
+      if (!t) break;
+      body = t; refAGAIN = body.match(/^\s*([\s\S]*?)\s+(\d+)\s+(\d+)\s+R\s*$/);
+    }
+    const si = body.search(/\bstream\b/);
+    let out = null;
+    if (si >= 0) {
+      let head = body.slice(0, si);
+      // PDF 规范：stream 关键字后必须跳过一个 CRLF 或 LF（只跳一次），
+      // 忽略了这一步，解压器会把前导换行当 zlib 头，直接报 "incorrect header check"。
+      let dataStart = si + 6;
+      if (body[dataStart] === '\r') dataStart++;
+      if (body[dataStart] === '\n') dataStart++;
+      const filter = /\/Filter\s*\/(\w+)/.test(head) ? head.match(/\/Filter\s*\/(\w+)/)[1] : null;
+      // 先按 Length 取，失败就退到 endstream
+      let lenM = head.match(/\/Length\s+(\d+)/);
+      let dataEnd = -1;
+      if (lenM) {
+        dataEnd = Math.min(body.length, dataStart + +lenM[1]);
+        if (body.slice(dataEnd, dataEnd + 12).indexOf('endstream') < 0) dataEnd = -1;
+      }
+      if (dataEnd < 0) {
+        const e = body.indexOf('endstream', dataStart);
+        dataEnd = e < 0 ? body.length : e;
+      }
+      let slice = body.slice(dataStart, dataEnd);
+      const u8 = Uint8Array.from(slice, c => c.charCodeAt(0) & 0xff);
+      if (filter === 'FlateDecode' || (filter === null && /\x78[\x01\x9c\xda]/.test(slice.slice(0, 2)))) {
+        try { out = await inflateBytes(u8); } catch (e) { deflateFailed = true; out = new Uint8Array(0); }
+      } else {
+        out = u8; // 未压缩或其它过滤器
+      }
+    }
+    streamCache.set(num, out);
+    return out;
+  }
+
+  function latin1(u8) {
+    let s = '';
+    for (let i = 0; i < u8.length; i += 32768) s += String.fromCharCode.apply(null, u8.subarray(i, i + 32768));
+    return s;
+  }
+
+  /* --- 3. 解析字体 --- */
+  const fontCache = new Map();
+  let ttFontLike = 0;
+  async function makeFont(fontObjBody) {
+    const key = fontObjBody;
+    if (fontCache.has(key)) return fontCache.get(key);
+    // 未声明编码时按 WinAnsi 兜底：它覆盖法语全部重音符号，
+    // 也是 Word / LibreOffice / LaTeX 导出件的事实标准。
+    const font = { two: false, map: new Map(), widths: new Map(), dw: 1000, base: 'winansi', diffCode: null };
+    const sub = (fontObjBody.match(/\/Subtype\s*\/(\w+)/) || [])[1] || 'TrueType';
+    font.two = sub === 'Type0';
+    ttFontLike++;
+
+    // ToUnicode CMap → cid 到 unicode
+    const tu = fontObjBody.match(/\/ToUnicode\s+(\d+)\s+\d+\s+R/);
+    if (tu) {
+      try {
+        const cmap = latin1(await streamOf(+tu[1]) || new Uint8Array(0));
+        parseCMap(cmap, font.map);
+        font.base = 'cmap';
+      } catch (e) { /* 忽略损坏的 CMap */ }
+    }
+
+    // Differences → 简单字体编码偏移
+    const encRef = fontObjBody.match(/\/Encoding\s+(\d+)\s+\d+\s+R/);
+    let encBody = fontObjBody;
+    if (encRef) encBody = objs.get(+encRef[1]) || encBody;
+    const baseM = encBody.match(/\/BaseEncoding\s*\/(\w+)/);
+    if (baseM) font.base = baseM[1].toLowerCase();
+    else if (/\/Encoding\s*\/(WinAnsi|MacRoman|MacExpert|Standard)Encoding/.test(encBody)) {
+      font.base = encBody.match(/\/Encoding\s*\/(WinAnsi|MacRoman|MacExpert|Standard)Encoding/)[1].toLowerCase();
+    }
+    const diffSeg = encBody.slice(encBody.indexOf('/Differences'));
+    if (diffSeg.indexOf('/Differences') === 0) {
+      const arrEnd = diffSeg.indexOf(']');
+      const arr = diffSeg.slice(diffSeg.indexOf('[') + 1, arrEnd > 0 ? arrEnd : diffSeg.length);
+      const items = parseNameListBody(arr);
+      let code = -1;
+      items.forEach(it => {
+        if (/^-?\d+$/.test(it)) code = +it;
+        else if (code >= 0) { font.map.set(code++, glyphNameToUnicode(it) || ''); }
+      });
+    }
+    // 字形宽度表：有了它才能精确判断「两个词之间到底有没有空格」，
+    // 否则只能靠估算，中文字体把拉丁字母按全角排时会全盘判错。
+    if (font.two) {
+      const desc = fontObjBody.match(/\/DescendantFonts\s*\[\s*(\d+)\s+\d+\s+R/);
+      const cfb = desc ? objs.get(+desc[1]) : null;
+      if (cfb) {
+        const dwM = cfb.match(/\/DW\s+(-?[\d.]+)/);
+        if (dwM) font.dw = parseFloat(dwM[1]);
+        let wBody = cfb;
+        const wRef = cfb.match(/\/W\s+(\d+)\s+\d+\s+R/);
+        if (wRef && objs.get(+wRef[1])) wBody = objs.get(+wRef[1]);
+        const inner = balancedArrayAfter(wBody, '/W');
+        if (inner) parseWEntries(inner, font.widths);
+      }
+    } else {
+      const fcM = fontObjBody.match(/\/FirstChar\s+(-?\d+)/);
+      const wM = fontObjBody.match(/\/Widths\s*\[([\s\S]*?)\]/);
+      if (fcM && wM) {
+        const first = +fcM[1];
+        (wM[1].match(/-?[\d.]+/g) || []).forEach((v, k) => font.widths.set(first + k, parseFloat(v)));
+      }
+    }
+
+    // Type0 的后代字体常带有 CIDToGIDMap，这里不需要
+    fontCache.set(key, font);
+    return font;
+  }
+
+  function parseCMap(cmap, map) {
+    // bfchar
+    const re1 = /beginbfchar([\s\S]*?)endbfchar/g;
+    let m;
+    while ((m = re1.exec(cmap)) !== null) {
+      const inner = m[1];
+      const p = /<([0-9A-Fa-f]+)>\s*<([0-9A-Fa-f\s]+)>/g;
+      let x;
+      while ((x = p.exec(inner)) !== null) {
+        const id = parseInt(x[1], 16);
+        map.set(id, hexToUnicodeStr(x[2]));
+      }
+    }
+    // bfrange
+    const re2 = /beginbfrange([\s\S]*?)endbfrange/g;
+    while ((m = re2.exec(cmap)) !== null) {
+      const inner = m[1];
+      const p = /<([0-9A-Fa-f]+)>\s*<([0-9A-Fa-f]+)>\s*(?:<([0-9A-Fa-f\s]+)>|\[([\s\S]*?)\])/g;
+      let x;
+      while ((x = p.exec(inner)) !== null) {
+        const lo = parseInt(x[1], 16), hi = parseInt(x[2], 16);
+        if (x[3]) {
+          let base = parseInt(x[3].replace(/\s/g, '').slice(-4), 16);
+          for (let c = lo; c <= hi && c - lo < 65535; c++) map.set(c, String.fromCharCode(base + (c - lo)));
+        } else if (x[4]) {
+          const arr = (x[4].match(/<[0-9A-Fa-f\s]+>/g) || []);
+          arr.forEach((hx, k) => {
+            const us = hx.slice(1, -1).replace(/\s/g, '').match(/../g) || [];
+            map.set(lo + k, us.map(h => String.fromCharCode(parseInt(h, 16))).join(''));
+          });
+        }
+      }
+    }
+    // cidrange 里 direct unicode 早已是 unicode，可直接忽略
+  }
+
+  /* --- 4. 页面树 --- */
+  const pages = [];
+  const catalogM = raw.match(/Type\s*\/Catalog[\s\S]{0,400}?\/Pages\s+(\d+)\s+\d+\s+R/);
+  let rootNum = catalogM ? +catalogM[1] : null;
+  if (rootNum === null) {
+    // 兜底：第一个 /Type /Pages 对象
+    for (const [n, b] of objs) if (/\/Type\s*\/Pages\b/.test(b) && !/\/Type\s*\/Page\b/.test(b)) { rootNum = n; break; }
+  }
+  function walk(nodeNum, depth) {
+    if (depth > 24) return;
+    const b = objs.get(nodeNum);
+    if (!b) return;
+    if (/\/Type\s*\/Page\b/.test(b)) { pages.push(nodeNum); return; }
+    const kidsSeg = b.slice(b.indexOf('/Kids'));
+    const arrEnd = kidsSeg.indexOf(']');
+    const kidsStr = kidsSeg.slice(kidsSeg.indexOf('[') + 1, arrEnd > 0 ? arrEnd : kidsSeg.length);
+    const nums = (kidsStr.match(/(\d+)\s+\d+\s+R/g) || []).map(s => +s.match(/^(\d+)/)[1]);
+    nums.forEach(n => walk(n, depth + 1));
+  }
+  if (rootNum !== null) walk(rootNum, 0);
+  if (!pages.length) {
+    // 最后兜底：所有 /Type /Page 对象（乱序）
+    for (const [n, b] of objs) if (/\/Type\s*\/Page\b/.test(b)) pages.push(n);
+  }
+  pages.sort((a, c) => a - c);
+  prog(25, `共 ${pages.length} 页`);
+
+  /* --- 5. 逐页渲染文本 --- */
+  const outPages = [];
+  let totalChars = 0;
+  for (let pi = 0; pi < pages.length; pi++) {
+    const body = objs.get(pages[pi]) || '';
+    const resRef = (body.match(/\/Resources\s+(\d+)\s+\d+\s+R/) || [])[1];
+    const resBody = resRef ? (objs.get(+resRef) || '') : body.slice(body.indexOf('/Resources'));
+    const fontNames = new Map();   // /F1 → fontObjBody
+    const fSegStart = resBody.indexOf('/Font');
+    if (fSegStart >= 0) {
+      const seg = resBody.slice(fSegStart);
+      const dictEnd = seg.indexOf('>>');
+      const fstr = seg.slice(0, dictEnd > 0 ? dictEnd : seg.length);
+      const re = /(\/[\w#.-]+)\s+(\d+)\s+\d+\s+R/g;
+      let m;
+      while ((m = re.exec(fstr)) !== null) {
+        const fb = objs.get(+m[2]);
+        if (fb) fontNames.set(m[1], fb);
+      }
+    }
+
+    // Contents：可能是单引用也可能是引用数组
+    let contentNums = [];
+    const contSeg = body.slice(body.indexOf('/Contents'));
+    const cArrBracket = contSeg.indexOf('[');
+    const toSE = contSeg.indexOf('/');
+    if (cArrBracket >= 0 && (toSE < 0 || cArrBracket < toSE + 12)) {
+      const arrEnd = contSeg.indexOf(']', cArrBracket);
+      const arr = contSeg.slice(cArrBracket + 1, arrEnd > 0 ? arrEnd : contSeg.length);
+      contentNums = (arr.match(/(\d+)\s+\d+\s+R/g) || []).map(s => +s.match(/^(\d+)/)[1]);
+    } else {
+      const c = (contSeg.match(/(\d+)\s+\d+\s+R/) || [])[1];
+      if (c) contentNums = [+c];
+    }
+
+    let pageText = '';
+    for (const cn of contentNums) {
+      let cs = null;
+      try { const u8 = await streamOf(cn); if (u8) cs = latin1(u8); } catch (e) { cs = null; }
+      if (!cs) continue;
+      pageText += await renderContent(cs, fontNames, makeFont);
+    }
+    outPages.push(pageText);
+    totalChars += pageText.length;
+    prog(25 + Math.round(70 * (pi + 1) / Math.max(1, pages.length)), `提取第 ${pi + 1}/${pages.length} 页`);
+  }
+
+  let text = outPages.join('\n\n');
+
+  if (deflateFailed && !text.trim()) {
+    throw new Error('PDF 数据流解压失败，文件可能已损坏或使用了不支持的压缩算法（如 LZW / JPEG2000 封装的字体）。');
+  }
+
+  text = postProcess(text);
+  prog(100, '完成');
+
+  const bodies = text.replace(/\s/g, '');
+  return {
+    text,
+    pages: outPages.map(postProcess),
+    pageCount: pages.length,
+    fonts: ttFontLike,
+    scanned: pages.length > 0 && bodies.length < pages.length * 20
+  };
+}
+
+/* ---------------- 内容流渲染 ---------------- */
+/* 关键点：WPS / Word / LaTeX 导出的 PDF 常常**逐字形**绘制（每个字符
+   一个 Tm + Tj + TD），所以不能用 「BT/ET 边界」当行边界，否则每个
+   字母都会被切成独立一行，法语课文全散架。
+   正确做法是维护标准的文本矩阵 [a b c d e f]，把 (e,f) 换算成页面用户
+   坐标，靠 y 的跳变换行、靠估算的字距（EMA）补空格。 */
+async function renderContent(cs, fontNames, makeFont) {
+  let mtx = [1, 0, 0, 1, 0, 0];   // a b c d e f
+  let fontSize = 12, leading = 0, charSpacing = 0, wordSpacing = 0;
+  let curFont = null;
+  let lineBuf = '';
+  const lines = [];
+  let curLineY = null;
+  let lastX = null, lastLen = 0, unit = null;   // 字宽估计（EMA）
+
+  const fontFor = async name => {
+    const fb = fontNames.get(name) || fontNames.get('/' + String(name).replace(/^\//, ''));
+    return fb ? makeFont(fb) : null;
+  };
+
+  const effSize = () => {
+    const s = fontSize * Math.hypot(mtx[1], mtx[3]);
+    return (isFinite(s) && s > 0) ? s : fontSize;
+  };
+  const translate = (tx, ty) => {
+    const [a, b, c, d, e, f] = mtx;
+    mtx = [a, b, c, d, a * tx + c * ty + e, b * tx + d * ty + f];
+  };
+  const flush = () => { if (lineBuf.trim()) lines.push(lineBuf); lineBuf = ''; };
+
+  let lastEndX = null;             // 上一次绘制按字宽推算的终点（用户坐标）
+
+  // 绘制前：决定是否换行、是否补空格
+  const beforeDraw = () => {
+    const y = mtx[5], x = mtx[4], es = effSize();
+    if (curLineY === null) { curLineY = y; lastX = null; lastEndX = null; return; }
+    if (Math.abs(y - curLineY) > Math.max(1.2, es * 0.4)) {
+      flush(); curLineY = y; lastX = null; lastEndX = null; unit = null; return;
+    }
+    let needSpace = false;
+    if (lastEndX !== null) needSpace = (x - lastEndX) > es * 0.28;
+    else if (lastX !== null && unit) needSpace = (x - (lastX + lastLen * unit)) > unit * 0.5;
+    if (needSpace && !/[ \t]$/.test(lineBuf) && lineBuf !== '') lineBuf += ' ';
+  };
+
+  // 绘制后：用 PDF 自带的字宽表推算这段文本的终点
+  const afterDraw = (s, codes, f) => {
+    const x = mtx[4];
+    const hScale = Math.hypot(mtx[0], mtx[1]) || 1;
+    let advance = 0, known = false;
+    if (f && codes.length) {
+      let has = true;
+      for (const c of codes) {
+        if (f.widths.has(c)) advance += f.widths.get(c);
+        else { has = false; break; }
+      }
+      known = has;
+    }
+    if (known && codes.length) {
+      lastEndX = x + (advance / 1000) * fontSize * hScale + charSpacing * codes.length * hScale;
+    } else {
+      lastEndX = null;   // 退回 EMA 估算
+      if (lastX !== null && lastLen > 0) {
+        const cand = (x - lastX) / lastLen;
+        if (cand > 0.05) unit = (unit === null) ? cand : unit * 0.75 + Math.min(cand, unit * 2.2) * 0.25;
+      }
+    }
+    lastX = x;
+    lastLen = Math.max(1, s.length);
+  };
+
+  /* 字符串解码 ------------------------------------------------ */
+  const decodeLiteral = async (op, f) => {
+    const inner = unescapePdfString(op.slice(1, op.lastIndexOf(')')));
+    if (!f) return { t: inner.replace(/[^ -~À-ÿ]/g, ''), codes: [] };
+    let out = '';
+    const codes = [];
+    for (let i = 0; i < inner.length; i++) {
+      const c = inner.charCodeAt(i);
+      if (f.two) {
+        const cid = (c << 8) | (inner.charCodeAt(i + 1) || 0);
+        i++;
+        codes.push(cid);
+        out += f.map.has(cid) ? f.map.get(cid) : (cid > 0x20 ? '�' : '');
+      } else {
+        codes.push(c);
+        out += baseEncode(c, f) || (c >= 32 ? String.fromCharCode(c) : '');
+      }
+    }
+    return { t: out, codes };
+  };
+
+  const decodeHex = async (op, f) => {
+    let h = op.slice(1, op.indexOf('>')).replace(/[^0-9A-Fa-f]/g, '');
+    if (h.length % 2) h += '0';
+    const bytes = h.match(/../g) || [];
+    if (!f) return { t: bytes.map(b => String.fromCharCode(parseInt(b, 16))).join(''), codes: [] };
+    let out = '';
+    const codes = [];
+    if (f.two) {
+      for (let i = 0; i < bytes.length; i += 2) {
+        const cid = (parseInt(bytes[i], 16) << 8) | (parseInt(bytes[i + 1] || '0', 16));
+        codes.push(cid);
+        out += f.map.has(cid) ? f.map.get(cid) : (cid > 0x20 ? '�' : '');
+      }
+    } else {
+      bytes.forEach(b => {
+        const c = parseInt(b, 16);
+        codes.push(c);
+        out += baseEncode(c, f) || (c >= 32 ? String.fromCharCode(c) : '');
+      });
+    }
+    return { t: out, codes };
+  };
+
+  const decodeOperand = async (op, f) => {
+    if (op[0] === '(') return await decodeLiteral(op, f);
+    if (op[0] === '<') return await decodeHex(op, f);
+    return { t: '', codes: [] };
+  };
+
+  /* 用正则逐 token 扫描：兼容 \r、单个超长行、无换行的紧凑流 */
+  const tokRe = /(\/[A-Za-z0-9#.\-+]+)|(\[\s*(?:[^\[\]]|\[[\s\S]*?\])*\])|(\((?:\\.|[^\\()])*\))|(<[0-9A-Fa-f\s]*>)|(-?\d*\.?\d+)|([A-Za-z'"]+)/g;
+  const tokens = [];
+  let tk;
+  while ((tk = tokRe.exec(cs)) !== null) tokens.push(tk[0]);
+
+  let i = 0;
+  let pending = [];
+  const isOperand = t => !/^[A-Za-z'"]+$/.test(t);
+
+  while (i < tokens.length) {
+    const t = tokens[i];
+    if (isOperand(t)) { pending.push(t); i++; continue; }
+    const op = t;
+    const args = pending; pending = [];
+    i++;
+
+    switch (op) {
+      case 'BT':
+        mtx = [1, 0, 0, 1, 0, 0];
+        lastX = null; lastEndX = null; unit = null;   // 但不 flush：一个 BT/ET 块常只有一个字形
+        break;
+      case 'ET':
+        // 故意不 flush：一个 BT/ET 块里往往只有一个字形
+        break;
+      case 'Tf': {
+        const fname = args[args.length - 2];
+        const sz = parseFloat(args[args.length - 1]);
+        if (!isNaN(sz)) fontSize = sz;
+        if (fname) curFont = await fontFor(fname);
+        break;
+      }
+      case 'Tc': { const v = parseFloat(args[args.length - 1]); if (!isNaN(v)) charSpacing = v; break; }
+      case 'Tw': { const v = parseFloat(args[args.length - 1]); if (!isNaN(v)) wordSpacing = v; break; }
+      case 'TL': { const v = parseFloat(args[args.length - 1]); if (!isNaN(v)) leading = v; break; }
+      case 'Td': case 'TD': {
+        const dx = parseFloat(args[args.length - 2]) || 0;
+        const dy = parseFloat(args[args.length - 1]) || 0;
+        if (op === 'TD') leading = -dy;
+        translate(dx, dy);
+        break;
+      }
+      case 'T*': translate(0, -leading || -fontSize * 1.2); break;
+      case 'Tm': {
+        if (args.length >= 6) {
+          const n = args.slice(-6).map(parseFloat);
+          if (n.every(v => !isNaN(v))) mtx = n;
+        }
+        break;
+      }
+      case 'Tj': {
+        beforeDraw();
+        const d0 = await decodeOperand(args[args.length - 1] || '()', curFont);
+        lineBuf += d0.t;
+        if (d0.t) afterDraw(d0.t, d0.codes, curFont);
+        break;
+      }
+      case 'TJ': {
+        const items = parseTJArray(args[args.length - 1] || '[]');
+        let drew = '';
+        for (const it of items) {
+          if (typeof it === 'number') {
+            translate((-it / 1000) * fontSize, 0);
+            if (Math.abs(it) / 1000 > 0.18 && !/[ \t]$/.test(lineBuf) && lineBuf) lineBuf += ' ';
+          } else {
+            beforeDraw();
+            const d = await decodeOperand(it, curFont);
+            lineBuf += d.t;
+            if (d.t) { afterDraw(d.t, d.codes, curFont); drew += d.t; }
+          }
+        }
+        if (!drew) afterDraw(' ', [], curFont);
+        break;
+      }
+      case "'": case '"': {
+        translate(0, -leading || -fontSize * 1.2);
+        beforeDraw();
+        const d = await decodeOperand(args[args.length - 1] || '()', curFont);
+        lineBuf += d.t;
+        if (d.t) afterDraw(d.t, d.codes, curFont);
+        break;
+      }
+      default: break;
+    }
+  }
+    return lines.join('\n');
+}
+
+function parseTJArray(arrStr) {
+  const inner = arrStr.replace(/^\[/, '').replace(/\]$/, '');
+  const out = [];
+  const re = /(\((?:\\.|[^\\()])*\))|(<[0-9A-Fa-f\s]*>)|(-?\d*\.?\d+)/g;
+  let m;
+  while ((m = re.exec(inner)) !== null) {
+    if (m[1] || m[2]) out.push(m[1] || m[2]);
+    else if (m[3] && m[3] !== '-') out.push(parseFloat(m[3]));
+  }
+  return out;
+}
+
+function unescapePdfString(s) {
+  return s
+    .replace(/\\([nrtbf()\\])/g, (_, c) => ({ n: '\n', r: '\r', t: '\t', b: '\b', f: '\f', '(': '(', ')': ')', '\\': '\\' }[c]))
+    .replace(/\\([0-7]{1,3})/g, (_, o) => String.fromCharCode(parseInt(o, 8)))
+    .replace(/\\\n/g, '');
+}
+
+/* ---------------- 后处理 ---------------- */
+function postProcess(t) {
+  return t
+    // 连字 → 常规写法（法语常见）
+    .replace(/ﬁ/g, 'fi').replace(/ﬂ/g, 'fl')
+    .replace(/ﬀ/g, 'ff').replace(/ﬃ/g, 'ffi').replace(/ﬄ/g, 'ffl')
+    // 软连字符
+    .replace(/\u00AD/g, '')
+    // 被换行切断的单词：architec-\nture → architecture
+    .replace(/([A-Za-zÀ-ÿ])-[ \t]*\n+[ \t]*(?=[a-zà-ÿ])/g, '$1')
+    // 排版换行把标点甩到下一行：café\n. → café.
+    .replace(/([A-Za-zÀ-ÿ0-9»”’)])\n+([.,;:!?»”)])/g, '$1$2')
+    // 上一行以逗号/分号结尾、下一行以小写字母开头，多半是腰斩的句子
+    .replace(/([,;])\n+(?=[a-zà-ÿ])/g, '$1 ')
+    .replace(/[ \t]+\n/g, '\n')
+    .replace(/\n{3,}/g, '\n\n')
+    .replace(/[ \t]{2,}/g, ' ')
+    .trim();
+}
+
+/* ---------------- 导出 ---------------- */
+const PDFText = { extractPdfText };
+if (IS_NODE) module.exports = PDFText;
+else if (typeof window !== 'undefined') window.PDFText = PDFText;
+
+;
+/* =========================================================================
+   ocr.js — 扫描件 OCR
+   -------------------------------------------------------------------------
+   三层结构：
+     1. 抽取  从扫描版 PDF 里把每页的整页图片抠出来
+              （DCTDecode=JPEG 直接用 / FlateDecode=裸像素 / CCITTFaxDecode=传真压缩）
+     2. 预处理 缩放、灰度、提对比 —— 这一步对识别率的影响比换引擎还大
+     3. 识别   视觉大模型（质量最好）或 Tesseract.js（本地跑，但要下模型）
+
+   设计约束：
+     · 这个文件不依赖 app.js 的任何全局变量，API 配置由调用方传入
+     · 纯函数（CCITT 解码、法语后处理）在 Node 里可直接跑，方便测试
+   ========================================================================= */
+(function (global) {
+  'use strict';
+  const IS_NODE = typeof module !== 'undefined' && !!module.exports;
+
+  /* ==================== 基础工具 ==================== */
+
+  function latin1(u8) {
+    let s = '';
+    const CH = 32768;
+    for (let i = 0; i < u8.length; i += CH) s += String.fromCharCode.apply(null, u8.subarray(i, i + CH));
+    return s;
+  }
+
+  function toBase64(u8) {
+    let s = '';
+    const CH = 32768;
+    for (let i = 0; i < u8.length; i += CH) s += String.fromCharCode.apply(null, u8.subarray(i, i + CH));
+    return global.btoa ? global.btoa(s) : Buffer.from(u8).toString('base64');
+  }
+
+  async function inflateBytes(bytes) {
+    // 浏览器：原生 DecompressionStream
+    if (typeof global.DecompressionStream === 'function') {
+      for (const fmt of ['deflate', 'deflate-raw']) {
+        try {
+          const ds = new global.DecompressionStream(fmt);
+          const w = ds.writable.getWriter();
+          w.write(bytes); w.close();
+          const chunks = [];
+          const reader = ds.readable.getReader();
+          for (;;) { const { done, value } = await reader.read(); if (done) break; chunks.push(value); }
+          const total = chunks.reduce((n, c) => n + c.length, 0);
+          if (!total) continue;
+          const out = new Uint8Array(total);
+          let o = 0; chunks.forEach(c => { out.set(c, o); o += c.length; });
+          return out;
+        } catch (e) { /* 换下一种格式重试 */ }
+      }
+    }
+    // Node：zlib
+    try {
+      const z = require('zlib');
+      try { return new Uint8Array(z.inflateSync(Buffer.from(bytes))); } catch (e) { /* raw */ }
+      try { return new Uint8Array(z.inflateRawSync(Buffer.from(bytes))); } catch (e) { /* 放弃 */ }
+    } catch (e) { /* 无 zlib */ }
+    throw new Error('当前环境不支持解压 PDF 数据流');
+  }
+
+  /* ==================== PDF 对象表 ==================== */
+
+  // 建 num -> body 的表。扫描件的图片流是二进制，必须保证 latin1 是 1:1 字节映射，
+  // 绝不能用 TextDecoder('latin1')（那是 windows-1252 的别名，会吃掉 0x80–0x9F）
+  function buildObjTable(raw) {
+    const objs = new Map();
+    const re = /(\d+)\s+(\d+)\s+obj\b/g;
+    let m, marks = [];
+    while ((m = re.exec(raw)) !== null) marks.push({ n: +m[1], s: m.index + m[0].length });
+    marks.forEach((mk, i) => {
+      const end = raw.indexOf('endobj', mk.s);
+      const stop = (i + 1 < marks.length && end < 0) ? marks[i + 1].s : end;
+      objs.set(mk.n, raw.slice(mk.s, stop < 0 ? mk.s + 200 : stop));
+    });
+    return objs;
+  }
+
+  // 对象流（PDF 1.5+）：很多现代工具会把对象打包进 /ObjStm 压缩流里，
+  // 直接扫「N 0 obj」会一个都找不到。必须先把它们摊平回对象表。
+  async function expandObjectStreams(objs) {
+    for (const [num, body] of Array.from(objs)) {
+      if (!/\/ObjStm/.test(body)) continue;
+      const first = numAfter(body, '/First', 0);
+      const raw = streamBytes(body);
+      if (!raw || !first) continue;
+      let data;
+      try { data = await inflateBytes(raw); } catch (e) { continue; }
+      const head = latin1(data.subarray(0, Math.min(first, data.length)));
+      const pairs = (head.match(/(\d+)\s+(\d+)/g) || []).map(s => s.split(/\s+/).map(Number));
+      for (let i = 0; i < pairs.length; i++) {
+        const [onum, off] = pairs[i];
+        const end = i + 1 < pairs.length ? pairs[i + 1][1] : data.length - first;
+        objs.set(onum, latin1(data.subarray(first + off, first + end)));
+      }
+      void num;
+    }
+    return objs;
+  }
+
+  function dictVal(body, key) {
+    const i = body.indexOf(key);
+    if (i < 0) return null;
+    return body.slice(i + key.length, i + key.length + 80);
+  }
+
+  function numAfter(body, key, dflt) {
+    const v = dictVal(body, key);
+    if (!v) return dflt;
+    const m = v.match(/^\s*(-?\d+(?:\.\d+)?)/);
+    return m ? parseFloat(m[1]) : dflt;
+  }
+
+  function refAfter(body, key) {
+    const v = dictVal(body, key);
+    if (!v) return null;
+    const m = v.match(/^\s*(\d+)\s+\d+\s+R/);
+    return m ? +m[1] : null;
+  }
+
+  // 取对象流里的原始字节
+  function streamBytes(body) {
+    const si = body.indexOf('stream');
+    if (si < 0) return null;
+    let ds = si + 6;
+    if (body[ds] === '\r') ds++;
+    if (body[ds] === '\n') ds++;
+    const lenM = body.match(/\/Length\s+(\d+)/);
+    let end;
+    if (lenM) end = Math.min(body.length, ds + (+lenM[1]));
+    else end = body.indexOf('endstream', ds);
+    if (end < 0 || end > body.length) end = body.length;
+    const slice = body.slice(ds, end);
+    return Uint8Array.from(slice, c => c.charCodeAt(0) & 0xff);
+  }
+
+  /* ==================== CCITT G3/G4 传真解码 ====================
+     黑白扫描件最爱用这套压缩（ABBYY / 老扫描仪 / 传真）。浏览器没有原生
+     解码器，所以只能自己写。表是 ITU-T T.6 标准码表。 */
+
+  const WHITE_TERM = [
+    '00110101', '000111', '0111', '1000', '1011', '1100', '1110', '1111',
+    '10011', '10100', '00111', '01000', '001000', '000011', '110100', '110101',
+    '101010', '101011', '0100111', '0001100', '0001000', '0010111', '0000011', '0000100',
+    '0101000', '0101011', '0010011', '0100100', '0011000', '00000010', '00000011', '00011010',
+    '00011011', '00010010', '00010011', '00010100', '00010101', '00010110', '00010111', '00101000',
+    '00101001', '00101010', '00101011', '00101100', '00101101', '00000100', '00000101', '00001010',
+    '00001011', '01010010', '01010011', '01010100', '01010101', '00100100', '00100101', '01011000',
+    '01011001', '01011010', '01011011', '01001010', '01001011', '00110010', '00110011', '00110100'
+  ];
+  const BLACK_TERM = [
+    '0000110111', '010', '11', '10', '011', '0011', '0010', '00011',
+    '000101', '000100', '0000100', '0000101', '0000111', '00000100', '00000111', '000011000',
+    '0000010111', '0000011000', '0000001000', '00001100111', '00001101000', '00001101100', '00000110111', '00000101000',
+    '00000010111', '00000011000', '000011001010', '000011001011', '000011001100', '000011001101', '000001101000', '000001101001',
+    '000001101010', '000001101011', '000011010010', '000011010011', '000011010100', '000011010101', '000011010110', '000011010111',
+    '000001101100', '000001101101', '000011011010', '000011011011', '000001010100', '000001010101', '000001010110', '000001010111',
+    '000001100100', '000001100101', '000001010010', '000001010011', '000000100100', '000000110111', '000000111000', '000000100111',
+    '000000101000', '000001011000', '000001011001', '000000101011', '000000101100', '000001011010', '000001100110', '000001100111'
+  ];
+  const WHITE_MAKE = [
+    '11011', '10010', '010111', '0110111', '00110110', '00110111', '01100100', '01100101',
+    '01101000', '01100111', '011001100', '011001101', '011010010', '011010011',
+    '011010100', '011010101', '011010110', '011010111', '011011000', '011011001',
+    '011011010', '011011011', '010011000', '010011001', '010011010', '011000', '010011011'
+  ];
+  const BLACK_MAKE = [
+    '0000001111', '000011001000', '000011001001', '000001011011', '000000110011', '000000110100',
+    '000000110101', '0000001101100', '0000001101101', '0000001001010', '0000001001011',
+    '0000001001100', '0000001001101', '0000001110010', '0000001110011', '0000001110100',
+    '0000001110101', '0000001110110', '0000001110111', '0000001010010', '0000001010011',
+    '0000001010100', '0000001010101', '0000001011010', '0000001011011', '0000001100100', '0000001100101'
+  ];
+
+  // 把码表编成「码字 -> {len, color, run}」的查找表（黑/白分开）
+  function buildRunTable(term, make) {
+    const tbl = new Map();
+    let bad = [];
+    term.forEach((c, i) => { if (tbl.has(c)) bad.push(c); tbl.set(c, i); });
+    make.forEach((c, k) => { if (tbl.has(c)) bad.push(c); tbl.set(c, (k + 1) * 64); });
+    return { tbl, bad };
+  }
+  const RUN_TABLES = { white: buildRunTable(WHITE_TERM, WHITE_MAKE), black: buildRunTable(BLACK_TERM, BLACK_MAKE) };
+
+  // 前缀码必须无前缀，否则解码会错位。表里任一处抄错，这里几乎必炸
+  function codesArePrefixFree(codes) {
+    const set = new Set(codes);
+    for (const c of codes) {
+      for (let i = 1; i < c.length; i++) {
+        if (set.has(c.slice(0, i))) return { ok: false, a: c, b: c.slice(0, i) };
+      }
+    }
+    return { ok: true };
+  }
+
+  class BitReader {
+    constructor(bytes) { this.b = bytes; this.pos = 0; }
+    bit() {
+      const byte = this.b[this.pos >> 3];
+      if (byte === undefined) return -1;
+      const v = (byte >> (7 - (this.pos & 7))) & 1;
+      this.pos++;
+      return v;
+    }
+    peek(n) {
+      const save = this.pos;
+      let s = '';
+      for (let i = 0; i < n; i++) { const v = this.bit(); if (v < 0) break; s += v; }
+      this.pos = save;
+      return s;
+    }
+    remaining() { return Math.max(0, this.b.length * 8 - this.pos); }
+  }
+
+  // 读一个游程（MH 编码）：先读终止码，若 >= 64 继续读补充码累加
+  function readRun(br, color) {
+    const T = RUN_TABLES[color];
+    let acc = 0, code = '';
+    for (let guard = 0; guard < 40; guard++) {
+      code += br.bit();
+      if (br.pos > br.b.length * 8) return -1;
+      if (T.tbl.has(code)) {
+        const v = T.tbl.get(code);
+        acc += v;
+        if (v < 64) return acc;
+        code = '';
+      }
+    }
+    return -1;
+  }
+
+  /**
+   * CCITT 解码
+   * @param {Uint8Array} data 压缩后的字节
+   * @param {number} width  图像宽（Columns）
+   * @param {number} height 图像高（Rows）
+   * @param {object} o      {K: -1 表示 G4 二维；0 表示 G3 一维；blackIs1: 1 是否表示黑}
+   * @returns {Uint8Array} 每像素 0/1（1 表示黑，已按 blackIs1 归一化）
+   */
+  function ccittDecode(data, width, height, o) {
+    o = o || {};
+    const K = (o.K === undefined ? -1 : o.K);
+    const br = new BitReader(data);
+    const rows = Math.max(1, height | 0);
+    const out = new Uint8Array(width * rows);
+    let ref = new Uint8Array(width);           // G4 参考行：首行为全白
+    const EOFB = '000000000001000000000001';
+
+    // 参考行的所有变化点（升序）。G4 每步都要查 b1/b2，预先算好避免每行重复扫
+    let refChg = [];
+    const refreshRef = line => {
+      refChg = [];
+      let prev = 0;
+      for (let i = 0; i < width; i++) if (line[i] !== prev) { refChg.push(i); prev = line[i]; }
+    };
+    const firstAfter = (arr, pos, cond) => {
+      for (let i = 0; i < arr.length; i++) if (arr[i] > pos && (!cond || cond(arr[i]))) return arr[i];
+      return width;
+    };
+
+    // 约定（T.6）：变化点 a_i 到 a_{i+1} 之间的游程占像素 [a_i, a_{i+1}-1]
+    const fill = (line, from, to, color) => {
+      const s = Math.max(from, 0), e = Math.min(to, width);
+      for (let i = s; i < e; i++) line[i] = color;
+    };
+
+    for (let y = 0; y < rows; y++) {
+      const cur = out.subarray(y * width, (y + 1) * width);
+
+      if (K < 0) {
+        // ---- G4（T.6，二维 MMR）：行首没有 EOL，靠 EOFB 结束 ----
+        if (br.remaining() < 2) break;
+        if (br.peek(24) === EOFB) break;
+      } else {
+        // ---- G3（MH）：每行前可能补 0 对齐，然后是 EOL 000000000001 ----
+        let guard = 0;
+        let b = 0;
+        do { b = br.bit(); } while (b === 0 && guard++ < 200000);
+        if (b !== 1) break;                    // 数据读完了
+      }
+
+      if (K === 0) {
+        // 一维：黑白交替的游程序列
+        let x = 0, color = 0;
+        while (x < width) {
+          const run = readRun(br, color ? 'black' : 'white');
+          if (run < 0) break;
+          fill(cur, x, x + run, color);
+          x += run; color = color ? 0 : 1;
+        }
+      } else {
+        // 二维 MMR
+        refreshRef(ref);
+        // a0 = 编码行上「已处理的最后一个变化点」。规范里行首 a0 取 -1，即第一个像素之前
+        // 那个虚拟变化点 —— 这个 -1 很关键：若取 0，则「本行以黑像素开头」时位置 0 的变化点
+        // 会被 b1 的「> a0」条件漏掉，整行黑白颠倒。
+        // 但填充和游程长度要以 base = max(a0, 0) 为基准（虚拟点不占像素）。
+        let a0 = -1, color = 0;
+        let guard = 0;
+        while (a0 < width && guard++ < width * 4 + 200) {
+          const base = a0 < 0 ? 0 : a0;
+          const b1 = firstAfter(refChg, a0, p => ref[p] !== color);
+          const b2 = b1 >= width ? width : firstAfter(refChg, b1, null);
+          const m = br.peek(7);
+          let a1;
+
+          if (m.slice(0, 4) === '0001') {          // Pass：跳过参考行上的整段
+            br.pos += 4;
+            a0 = b2;
+            continue;
+          }
+          if (m.slice(0, 3) === '001') {           // Horizontal：直接给两个游程长度
+            br.pos += 3;
+            const r1 = readRun(br, color ? 'black' : 'white');
+            const r2 = readRun(br, color ? 'white' : 'black');
+            if (r1 < 0 || r2 < 0) break;
+            const a1h = Math.min(base + r1, width);
+            const a2h = Math.min(a1h + r2, width);
+            fill(cur, base, a1h, color);
+            fill(cur, a1h, a2h, color ? 0 : 1);
+            a0 = a2h;
+            continue;
+          }
+          if (m[0] === '1') { br.pos += 1; a1 = b1; }                          // V0
+          else if (m.slice(0, 3) === '011') { br.pos += 3; a1 = b1 + 1; }      // VR1
+          else if (m.slice(0, 6) === '000011') { br.pos += 6; a1 = b1 + 2; }   // VR2
+          else if (m.slice(0, 7) === '0000011') { br.pos += 7; a1 = b1 + 3; }  // VR3
+          else if (m.slice(0, 3) === '010') { br.pos += 3; a1 = b1 - 1; }      // VL1
+          else if (m.slice(0, 6) === '000010') { br.pos += 6; a1 = b1 - 2; }   // VL2
+          else if (m.slice(0, 7) === '0000010') { br.pos += 7; a1 = b1 - 3; }  // VL3
+          else if (m.slice(0, 7) === '0000001') { br.pos += 7; break; }        // 扩展：不支持
+          else break;
+
+          a1 = Math.max(base, Math.min(a1, width));
+          fill(cur, base, a1, color);
+          a0 = a1;
+          color = color ? 0 : 1;
+        }
+        fill(cur, a0 < 0 ? 0 : a0, width, color);   // 行尾补满
+      }
+      ref = cur;
+    }
+
+    if (o.invert) { for (let i = 0; i < out.length; i++) out[i] = out[i] ? 0 : 1; return out; }
+    if (o.autoInvert === false) return out;
+    // 兜底：文档页几乎不可能是「黑多于白」。真出现多半是我们对某个 flag 理解反了
+    let black = 0;
+    for (let i = 0; i < out.length; i++) black += out[i];
+    if (black * 2 > out.length) { for (let i = 0; i < out.length; i++) out[i] = out[i] ? 0 : 1; }
+    return out;
+  }
+
+  /* ==================== 从 PDF 抽页面图片 ==================== */
+
+  function parseColorSpace(body, objs) {
+    const m = body.match(/\/ColorSpace\s*(\/\w+|\d+\s+\d+\s+R)/);
+    if (!m) return 'DeviceRGB';
+    let v = m[1];
+    const ref = v.match(/^(\d+)\s+\d+\s+R/);
+    if (ref) {
+      const b = objs.get(+ref[1]) || '';
+      if (/\/ICCBased/.test(b)) {
+        const n = (b.match(/\/N\s+(\d+)/) || [])[1];
+        return n === '1' ? 'Gray' : (n === '4' ? 'CMYK' : 'RGB');
+      }
+      if (/\/Indexed/.test(b)) return 'Indexed';
+      return 'RGB';
+    }
+    if (/DeviceGray|G$/.test(v)) return 'Gray';
+    if (/DeviceCMYK/.test(v)) return 'CMYK';
+    return 'RGB';
+  }
+
+  async function decodeImageXObject(body, objs) {
+    if (/\/ImageMask\s+true/.test(body)) return null;   // 蒙版不是图
+    const width = numAfter(body, '/Width', 0);
+    const height = numAfter(body, '/Height', 0);
+    const bpc = numAfter(body, '/BitsPerComponent', 8);
+    if (!width || !height) return null;
+
+    const filters = (body.match(/\/Filter\s*\[([^\]]*)\]/) || body.match(/\/Filter\s*(\/\w+)/) || [])[1]
+      || (body.match(/\/Filter\s*(\/\w+)/) || [])[1] || '';
+    const F = String(filters);
+    const dpM = body.match(/\/DecodeParms\s*(\d+\s+\d+\s+R|<<[\s\S]*?>>)/);
+    let dpBody = dpM ? dpM[1] : '';
+    if (/^\d+\s+\d+\s+R/.test(dpBody)) dpBody = objs.get(+dpBody.match(/^(\d+)/)[1]) || '';
+
+    const raw = streamBytes(body);
+    if (!raw || !raw.length) return null;
+
+    const cs = parseColorSpace(body, objs);
+    const comps = cs === 'Gray' ? 1 : (cs === 'CMYK' ? 4 : 3);
+
+    // ---- JPEG：绝大多数扫描件走这条路，字节可以直接当 .jpg 用 ----
+    if (/DCTDecode/.test(F) && raw[0] === 0xff && raw[1] === 0xd8) {
+      return { kind: 'jpeg', width, height, bytes: raw, mime: 'image/jpeg' };
+    }
+    // ---- JPEG2000：浏览器解不了，只能让用户重导 ----
+    if (/JPXDecode/.test(F) || (raw[0] === 0x00 && raw[4] === 0x6a && raw[5] === 0x50)) {
+      return { kind: 'unsupported', width, height, reason: 'JPXDecode（JPEG 2000）' };
+    }
+    // ---- 传真压缩 ----
+    if (/CCITTFaxDecode/.test(F)) {
+      const K = (dpBody.match(/\/K\s+(-?\d+)/) || [])[1];
+      const invert = /\/Decode\s*\[\s*1\s+0\s*\]/.test(body) || /\/Decode\s*\[\s*1\s+0\s*\]/.test(dpBody);
+      try {
+        const bits = ccittDecode(raw, width, height, { K: K === undefined ? -1 : +K, invert });
+        return { kind: 'bitmap', width, height, bits };
+      } catch (e) {
+        return { kind: 'unsupported', width, height, reason: 'CCITT 解码失败：' + e.message };
+      }
+    }
+    // ---- Flate：裸像素，可能带 PNG 预测器 ----
+    const flat = /FlateDecode/.test(F) || (!F && raw[0] === 0x78);
+    if (flat) {
+      let data;
+      try { data = await inflateBytes(raw); }
+      catch (e) { return { kind: 'unsupported', width, height, reason: 'FlateDecode 解压失败' }; }
+      const predictor = (dpBody.match(/\/Predictor\s+(\d+)/) || [])[1];
+      if (predictor && +predictor >= 10) {
+        const bpp = Math.max(1, Math.ceil(bpc * comps / 8));
+        data = unpredict(data, width, height, bpp);
+      }
+      return { kind: 'pixels', width, height, bpc, comps, data, colorSpace: cs };
+    }
+    // ---- 无压缩 ----
+    if (!F) return { kind: 'pixels', width, height, bpc, comps, data: raw, colorSpace: cs };
+    return { kind: 'unsupported', width, height, reason: F.replace(/\//g, '') };
+  }
+
+  // PNG 预测器还原（PDF 里和 PNG 是同一套 Filter 类型 0–4）
+  function unpredict(data, width, height, bpp) {
+    const stride = width * bpp;
+    const out = new Uint8Array(stride * height);
+    let prev = new Uint8Array(stride);
+    for (let y = 0; y < height; y++) {
+      const ft = data[y * (stride + 1)];
+      const src = y * (stride + 1) + 1;
+      const dst = y * stride;
+      for (let x = 0; x < stride; x++) {
+        const rawV = data[src + x] || 0;
+        const a = x >= bpp ? out[dst + x - bpp] : 0;
+        const b = prev[x];
+        const c = x >= bpp ? prev[x - bpp] : 0;
+        let v;
+        switch (ft) {
+          case 0: v = rawV; break;
+          case 1: v = rawV + a; break;
+          case 2: v = rawV + b; break;
+          case 3: v = rawV + ((a + b) >> 1); break;
+          case 4: {
+            const p = a + b - c, pa = Math.abs(p - a), pb = Math.abs(p - b), pc = Math.abs(p - c);
+            v = rawV + (pa <= pb && pa <= pc ? a : (pb <= pc ? b : c));
+            break;
+          }
+          default: v = rawV;
+        }
+        out[dst + x] = v & 0xff;
+      }
+      prev = out.subarray(dst, dst + stride);
+    }
+    return out;
+  }
+
+  function resourcesOf(pageBody, objs) {
+    let b = pageBody, depth = 0;
+    while (b && depth++ < 8) {
+      if (/\/Resources/.test(b)) {
+        const r = refAfter(b, '/Resources');
+        if (r !== null) { b = objs.get(r) || ''; continue; }
+        if (/\/Resources\s*<</.test(b)) return b;
+      }
+      const p = refAfter(b, '/Parent');
+      if (p === null) return null;
+      b = objs.get(p) || '';
+    }
+    return null;
+  }
+
+  /**
+   * 从扫描版 PDF 里抽出每页的整页图片
+   * @returns {Promise<{pages:Array, unsupported:Array, pageCount:number}>}
+   *          pages[i] = {page, kind, width, height, ...}  kind: jpeg|bitmap|pixels|unsupported
+   */
+  async function extractPageImages(bytes, onProgress) {
+    const prog = onProgress || (() => { });
+    const view = (typeof Buffer !== 'undefined' && Buffer.isBuffer(bytes))
+      ? new Uint8Array(bytes.buffer, bytes.byteOffset, bytes.byteLength) : bytes;
+    const raw = latin1(view);
+    if (!/%PDF-/.test(raw.slice(0, 1024))) throw new Error('这不是一个 PDF 文件');
+
+    const objs = await expandObjectStreams(buildObjTable(raw));
+    const pageNums = [];
+    objs.forEach((b, n) => { if (/\/Type\s*\/Page\b/.test(b) && !/\/Pages\b/.test(b)) pageNums.push(n); });
+    pageNums.sort((a, b) => a - b);
+    if (!pageNums.length) throw new Error('没找到任何页面对象');
+
+    const pages = [], unsupported = [];
+    for (let i = 0; i < pageNums.length; i++) {
+      prog(Math.round(i / pageNums.length * 100), `抽取第 ${i + 1}/${pageNums.length} 页图片`);
+      const res = resourcesOf(objs.get(pageNums[i]), objs);
+      if (!res) continue;
+      const xSeg = res.slice(res.indexOf('/XObject'));
+      if (!/\/XObject/.test(res)) continue;
+      let xBody = xSeg;
+      const xr = refAfter(res, '/XObject');
+      if (xr !== null) xBody = objs.get(xr) || '';
+      const names = [];
+      const rr = /(\/[\w#.\-]+)\s+(\d+)\s+\d+\s+R/g;
+      let m;
+      while ((m = rr.exec(xBody)) !== null) names.push(+m[2]);
+
+      let best = null;
+      for (const n of names) {
+        const b = objs.get(n);
+        if (!b || !/\/Subtype\s*\/Image/.test(b)) continue;
+        const img = await decodeImageXObject(b, objs);
+        if (!img) continue;
+        img.page = i + 1;
+        const area = img.width * img.height;
+        if (!best || area > best.width * best.height) best = img;
+      }
+      if (!best) continue;
+      if (best.kind === 'unsupported') unsupported.push(best);
+      else pages.push(best);
+    }
+    return { pages, unsupported, pageCount: pageNums.length };
+  }
+
+  /* ==================== 预处理（浏览器） ==================== */
+
+  async function loadBitmap(src) {
+    if (typeof global.createImageBitmap === 'function') {
+      try { return await global.createImageBitmap(src); } catch (e) { /* 回退到 Image */ }
+    }
+    // 回退路径必须带超时：某些环境（含老浏览器、无 canvas 的 DOM 模拟）既不给 onload
+    // 也不给 onerror，会永久挂起，整个识别流程就卡死了。
+    let url = src, made = false;
+    try {
+      const isBlob = (typeof Blob !== 'undefined' && src instanceof Blob)
+        || (global.Blob && src instanceof global.Blob);
+      if (isBlob && global.URL && global.URL.createObjectURL) { url = global.URL.createObjectURL(src); made = true; }
+    } catch (e) { /* 保持原值 */ }
+    return await new Promise((res, rej) => {
+      const im = new global.Image();
+      const timer = setTimeout(() => rej(new Error('图片解码超时')), 8000);
+      const done = fn => () => {
+        clearTimeout(timer);
+        if (made && global.URL && global.URL.revokeObjectURL) { try { global.URL.revokeObjectURL(url); } catch (e) { /* 忽略 */ } }
+        fn();
+      };
+      im.onload = done(() => res(im));
+      im.onerror = done(() => rej(new Error('图片解码失败')));
+      im.src = url;
+    });
+  }
+
+  /**
+   * 缩放 + 灰度 + 提对比。OCR 对「字符高度 30–45 px」最敏感，
+   * 扫描件常见 150 dpi 的 A4 大约是 1240x1754，放大到 2000 宽收益明显。
+   */
+  async function preprocess(source, opts) {
+    opts = opts || {};
+    const targetW = opts.targetWidth || 2000;
+    const gray = opts.grayscale !== false;
+    const contrast = opts.contrast || 1.25;
+
+    const bmp = await loadBitmap(source);
+    const w0 = bmp.width || source.width, h0 = bmp.height || source.height;
+    let scale = 1;
+    if (Math.max(w0, h0) < targetW * 0.75) scale = targetW / Math.max(w0, h0, 1);
+    else if (Math.max(w0, h0) > 3600) scale = 3600 / Math.max(w0, h0);
+    const w = Math.max(1, Math.round(w0 * scale)), h = Math.max(1, Math.round(h0 * scale));
+
+    const cv = global.document.createElement('canvas');
+    cv.width = w; cv.height = h;
+    const ctx = cv.getContext('2d');
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
+    ctx.drawImage(bmp, 0, 0, w, h);
+
+    if (gray || contrast !== 1) {
+      const id = ctx.getImageData(0, 0, w, h);
+      const d = id.data;
+      for (let i = 0; i < d.length; i += 4) {
+        let r = d[i], g = d[i + 1], b = d[i + 2];
+        if (gray) { const y = (r * 0.299 + g * 0.587 + b * 0.114); r = g = b = y; }
+        if (contrast !== 1) {
+          r = (r - 128) * contrast + 128; g = (g - 128) * contrast + 128; b = (b - 128) * contrast + 128;
+        }
+        d[i] = r < 0 ? 0 : r > 255 ? 255 : r;
+        d[i + 1] = g < 0 ? 0 : g > 255 ? 255 : g;
+        d[i + 2] = b < 0 ? 0 : b > 255 ? 255 : b;
+      }
+      ctx.putImageData(id, 0, 0);
+    }
+    if (bmp.close) bmp.close();
+    return await new Promise(res => cv.toBlob(res, 'image/png'));
+  }
+
+  // 位图（CCITT 解出来的 0/1）→ PNG Blob
+  async function bitmapToBlob(bits, width, height) {
+    const cv = global.document.createElement('canvas');
+    cv.width = width; cv.height = height;
+    const ctx = cv.getContext('2d');
+    const id = ctx.createImageData(width, height);
+    const d = id.data;
+    for (let i = 0; i < width * height; i++) {
+      const v = bits[i] ? 0 : 255;   // 1=黑
+      d[i * 4] = v; d[i * 4 + 1] = v; d[i * 4 + 2] = v; d[i * 4 + 3] = 255;
+    }
+    ctx.putImageData(id, 0, 0);
+    return await new Promise(res => cv.toBlob(res, 'image/png'));
+  }
+
+  // 裸像素（Flate 解出来的 RGB/Gray/CMYK）→ PNG Blob
+  async function pixelsToBlob(img) {
+    const { width, height, bpc, comps, data, colorSpace } = img;
+    const cv = global.document.createElement('canvas');
+    cv.width = width; cv.height = height;
+    const ctx = cv.getContext('2d');
+    const id = ctx.createImageData(width, height);
+    const d = id.data;
+    const n = width * height;
+    if (bpc === 8) {
+      for (let i = 0; i < n; i++) {
+        const o = i * comps;
+        if (comps >= 3) {
+          if (colorSpace === 'CMYK') {
+            const c = data[o] / 255, m = data[o + 1] / 255, y = data[o + 2] / 255, k = data[o + 3] / 255;
+            d[i * 4] = 255 * (1 - c) * (1 - k); d[i * 4 + 1] = 255 * (1 - m) * (1 - k); d[i * 4 + 2] = 255 * (1 - y) * (1 - k);
+          } else { d[i * 4] = data[o]; d[i * 4 + 1] = data[o + 1]; d[i * 4 + 2] = data[o + 2]; }
+        } else { d[i * 4] = d[i * 4 + 1] = d[i * 4 + 2] = data[o]; }
+        d[i * 4 + 3] = 255;
+      }
+    } else if (bpc === 1) {
+      for (let i = 0; i < n; i++) {
+        const byte = data[i >> 3] || 0;
+        const v = ((byte >> (7 - (i & 7))) & 1) ? 0 : 255;
+        d[i * 4] = d[i * 4 + 1] = d[i * 4 + 2] = v; d[i * 4 + 3] = 255;
+      }
+    }
+    ctx.putImageData(id, 0, 0);
+    return await new Promise(res => cv.toBlob(res, 'image/png'));
+  }
+
+  /* ==================== 识别后端 ==================== */
+
+  const VISION_PROMPT = `Transcris exactement le texte français de cette page.
+Règles strictes :
+- Conserve TOUS les accents et cédilles (é è ê ë à â î ï ô û ù ç œ æ) : ils changent le sens en français.
+- Conserve les apostrophes typographiques (') telles quelles.
+- Conserve les retours à la ligne et la structure des paragraphes.
+- Ne traduis pas, ne commente pas, n'ajoute aucun titre ni explication.
+- Si la page est vide ou illisible, réponds uniquement : [VIDE]
+Réponds uniquement avec le texte transcrit.`;
+
+  async function ocrByVision(blob, opts) {
+    const api = opts.api;
+    if (!api || (!api.key && !api.shared)) throw new Error('未配置 API Key');
+    const b64 = toBase64(new Uint8Array(await blob.arrayBuffer()));
+    const mime = blob.type || 'image/png';
+    const model = opts.model || api.model || (api.provider === 'claude' ? 'claude-opus-4-6' : 'gpt-4o');
+
+    if (api.provider === 'claude') {
+      const base = (api.base || 'https://api.anthropic.com').replace(/\/$/, '');
+      const r = await fetch(base + '/v1/messages', {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json', 'x-api-key': api.key,
+          'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true'
+        },
+        body: JSON.stringify({
+          model, max_tokens: 4000,
+          messages: [{
+            role: 'user', content: [
+              { type: 'image', source: { type: 'base64', media_type: mime, data: b64 } },
+              { type: 'text', text: VISION_PROMPT }
+            ]
+          }]
+        })
+      });
+      if (!r.ok) throw new Error('HTTP ' + r.status + ' ' + (await r.text()).slice(0, 200));
+      const j = await r.json();
+      return (j.content || []).filter(c => c.type === 'text').map(c => c.text).join('');
+    }
+    const base = (api.base || 'https://api.openai.com/v1').replace(/\/$/, '');
+    const h = { 'content-type': 'application/json' };
+    if (!api.shared) h.authorization = 'Bearer ' + api.key;   // 共享代理由服务端带 Key
+    const r = await fetch(base + '/chat/completions', {
+      method: 'POST',
+      headers: h,
+      body: JSON.stringify({
+        model, max_tokens: 4000,
+        messages: [{
+          role: 'user', content: [
+            { type: 'image_url', image_url: { url: 'data:' + mime + ';base64,' + b64 } },
+            { type: 'text', text: VISION_PROMPT }
+          ]
+        }]
+      })
+    });
+    if (!r.ok) throw new Error('HTTP ' + r.status + ' ' + (await r.text()).slice(0, 200));
+    const j = await r.json();
+    return j.choices?.[0]?.message?.content || '';
+  }
+
+  const TESS_CDNS = [
+    'https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js',
+    'https://unpkg.com/tesseract.js@5/dist/tesseract.min.js',
+    'https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/5.1.1/tesseract.min.js'
+  ];
+
+  function loadScript(url) {
+    return new Promise((res, rej) => {
+      const s = global.document.createElement('script');
+      s.src = url;
+      s.onload = res;
+      s.onerror = () => rej(new Error('无法加载 ' + url));
+      global.document.head.appendChild(s);
+    });
+  }
+
+  let tessWorker = null;
+  async function getTesseract(opts, onProgress) {
+    if (tessWorker) return tessWorker;
+    if (!global.Tesseract) {
+      let lastErr;
+      for (const url of TESS_CDNS) {
+        try {
+          if (onProgress) onProgress(0, '下载识别引擎…');
+          await loadScript(url);
+          if (global.Tesseract) break;
+        } catch (e) { lastErr = e; }
+      }
+      if (!global.Tesseract) throw new Error('识别引擎下载失败（可能没有网络，或 CDN 被墙）。' + (lastErr ? ' ' + lastErr.message : ''));
+    }
+    const o = { logger: m => { if (onProgress && m.status) onProgress(Math.round((m.progress || 0) * 100), m.status); } };
+    if (opts.langPath) o.langPath = opts.langPath;
+    tessWorker = await global.Tesseract.createWorker(opts.lang || 'fra', 1, o);
+    return tessWorker;
+  }
+
+  async function ocrByTesseract(blob, opts) {
+    const w = await getTesseract(opts, opts.onProgress);
+    const { data } = await w.recognize(blob);
+    return data && data.text ? data.text : '';
+  }
+
+  async function terminateTesseract() {
+    if (tessWorker) { try { await tessWorker.terminate(); } catch (e) { /* 忽略 */ } tessWorker = null; }
+  }
+
+  /* ==================== 法语后处理 ==================== */
+
+  // OCR 的典型错误里，只有「结构性」的那部分是安全可修的。
+  // 像 é→e 这种丢音符，没有上下文词典就不敢乱加——法语里 et/était 差一个音符就是两个词。
+  function frenchCorrect(text) {
+    if (!text) return '';
+    let t = String(text);
+    t = t.replace(/\r\n?/g, '\n');
+    t = t.replace(/[‘’ʼ′`´]/g, "'").replace(/[“”„]/g, '"');
+    t = t.replace(/[‐‑‒–—]/g, '-');
+    t = t.replace(/ﬁ/g, 'fi').replace(/ﬂ/g, 'fl').replace(/ﬀ/g, 'ff').replace(/ﬃ/g, 'ffi').replace(/ﬄ/g, 'ffl');
+    t = t.replace(/­/g, '');
+    // 行尾断词：architec-\nture → architecture
+    t = t.replace(/([A-Za-zÀ-ÿ])-[ \t]*\n+[ \t]*(?=[a-zà-ÿ])/g, '$1');
+    // 被换行甩到下一行的标点
+    t = t.replace(/([A-Za-zÀ-ÿ0-9»”’)])\n+([.,;:!?»”)])/g, '$1$2');
+    t = t.replace(/([,;])\n+(?=[a-zà-ÿ])/g, '$1 ');
+    // 孤立的单字母行多半是噪点
+    t = t.replace(/\n[|~*#_•·]{1,3}\n/g, '\n');
+    t = t.replace(/[ \t]+\n/g, '\n');
+    t = t.replace(/\n{3,}/g, '\n\n');
+    t = t.replace(/[ \t]{2,}/g, ' ');
+    return t.trim();
+  }
+
+  // 给个粗判：识别结果像不像法语。用来提示用户「这页可能识别歪了」
+  const FR_HINT = /\b(le|la|les|de|des|un|une|et|est|dans|pour|avec|sur|que|qui|nous|vous|ils|elle|au|aux|du|ce|cette|mais|ou|où|ne|pas|plus|très|être|avoir|faire)\b/i;
+  function qualityOf(text) {
+    const words = (text.match(/[A-Za-zÀ-ÿ]{2,}/g) || []);
+    const n = words.length;
+    if (!n) return { level: 'empty', note: '没识别出文字' };
+    const fr = words.filter(w => FR_HINT.test(w)).length;
+    const accented = (text.match(/[éèêëàâîïôûùçœæÉÈÊËÀÂÎÏÔÛÙÇŒÆ]/g) || []).length;
+    const ratio = fr / n;
+    if (n < 8) return { level: 'low', note: '只识别到很少的文字，这页可能是插图或空白页' };
+    if (ratio < 0.06 && accented < 3) return { level: 'low', note: '识别结果里几乎没有法语特征词，可能整页识别失败' };
+    return { level: 'ok', note: `${n} 词，含 ${accented} 个带音符字符` };
+  }
+
+  /* ==================== 对外入口 ==================== */
+
+  /**
+   * 识别一批页面图片
+   * @param {Array} pages extractPageImages 的结果（或 [{blob}]）
+   * @param {object} opts {engine:'vision'|'tesseract', api, model, lang, langPath, maxPages, onProgress}
+   */
+  async function recognizeImages(pages, opts) {
+    const prog = opts.onProgress || (() => { });
+    const use = pages.slice(0, opts.maxPages || pages.length);
+    const out = [];
+    let fail = 0;
+    for (let i = 0; i < use.length; i++) {
+      const p = use[i];
+      prog(Math.round(i / use.length * 100), `识别第 ${i + 1}/${use.length} 页`);
+      try {
+        let blob = p.blob;
+        if (!blob) {
+          if (p.kind === 'jpeg') blob = new Blob([p.bytes], { type: 'image/jpeg' });
+          else if (p.kind === 'bitmap') blob = await bitmapToBlob(p.bits, p.width, p.height);
+          else if (p.kind === 'pixels') blob = await pixelsToBlob(p);
+          else throw new Error('不支持的图片格式');
+        }
+        if (opts.preprocess !== false && typeof global.document !== 'undefined' && global.document.createElement) {
+          try { blob = await preprocess(blob, opts); } catch (e) { /* 预处理失败就用原图 */ }
+        }
+        const raw = opts.engine === 'tesseract'
+          ? await ocrByTesseract(blob, { lang: opts.lang, langPath: opts.langPath, onProgress: m => prog(0, '第 ' + (i + 1) + ' 页 · ' + m) })
+          : await ocrByVision(blob, { api: opts.api, model: opts.model });
+        const txt = frenchCorrect(raw);
+        if (/^\[VIDE\]$/i.test(txt.trim())) { out.push({ page: p.page || i + 1, text: '', quality: 'empty' }); continue; }
+        out.push({ page: p.page || i + 1, text: txt, quality: qualityOf(txt).level });
+      } catch (e) {
+        fail++;
+        out.push({ page: p.page || i + 1, text: '', error: e.message, quality: 'error' });
+        if (fail >= 3 && i > 0) {
+          prog(100, '连续失败，已停止');
+          break;
+        }
+      }
+    }
+    return { pages: out, failed: fail };
+  }
+
+  const OCR = {
+    extractPageImages, recognizeImages, preprocess, bitmapToBlob, pixelsToBlob,
+    ccittDecode, unpredict, frenchCorrect, qualityOf, toBase64, latin1,
+    terminateTesseract, VISION_PROMPT,
+    // 测试用：验证码表本身没抄错（前缀码必须无前缀，且不能有重复码字）
+    _tables: { WHITE_TERM, BLACK_TERM, WHITE_MAKE, BLACK_MAKE, RUN_TABLES, codesArePrefixFree, buildObjTable }
+  };
+
+  if (IS_NODE) module.exports = OCR;
+  if (typeof global !== 'undefined') global.OCR = OCR;
+})(typeof window !== 'undefined' ? window : globalThis);
+
+;
+/* Allez! 法语备考引擎 — 引擎层
+   纯前端、无依赖。没有 API Key 时用规则引擎跑，有 Key 时切换到远程模型。 */
+
+/* ================= 词典装载 ================= */
+const DICT = {};
+DICT_RAW.trim().split('\n').forEach(line => {
+  const p = line.split('|');
+  if (p.length < 4) return;
+  const w = p[0].trim().toLowerCase();
+  if (!w) return;
+  DICT[w] = { pos: p[1], level: p[2], gender: p[3], zh: (p[4] || '').trim() };
+});
+
+const VERBS = {};
+VERB_RAW.trim().split('\n').forEach(line => {
+  const p = line.split('|');
+  if (p.length < 5) return;
+  VERBS[p[0]] = {
+    pres: p[1].split(','),
+    subj: p[2].split(','),
+    fut: p[3],
+    pp: p[4].split(',')[0],
+    aux: p[4].split(',')[1]
+  };
+  DICT[p[0]] = DICT[p[0]] || { pos: 'v', level: 'A1', gender: '', zh: '' };
+  DICT[p[0]].pos = 'v';
+});
+
+const PRON = ['je', 'tu', 'il/elle', 'nous', 'vous', 'ils/elles'];
+const PRON_SHORT = ['je', 'tu', 'il', 'nous', 'vous', 'ils'];
+const TENSES = [
+  { id: 'pres', name: '直陈式现在时' },
+  { id: 'impar', name: '未完成过去时' },
+  { id: 'pc', name: '复合过去时' },
+  { id: 'futur', name: '简单将来时' },
+  { id: 'cond', name: '条件式现在时' },
+  { id: 'subj', name: '虚拟式现在时' }
+];
+
+/* ================= 文本工具 ================= */
+const ELISION = /^(l|d|j|m|t|s|n|c|qu|jusqu|puisqu|quoiqu|lorsqu|presqu)'/i;
+
+function stripAccents(s) {
+  return s.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+}
+function stripQuote(s) {
+  return s.replace(/[’']/g, "'").replace(/^[^a-zA-ZÀ-ÿ]*'/, '');
+}
+function tokenize(text) {
+  const out = [];
+  // 连字符也算词内：week-end / petit-déjeuner 会被当作一个词
+  const re = /[A-Za-zÀ-ÿŒœÆæ]+(?:[-'’][A-Za-zÀ-ÿŒœÆæ]+)*/g;
+  let m;
+  while ((m = re.exec(text)) !== null) {
+    const raw = m[0];
+    let w = raw.toLowerCase().replace(/[’]/g, "'");
+    let prefix = '';
+    if (w.indexOf("'") > 0) {
+      const p = w.slice(0, w.indexOf("'") + 1);
+      // 只有真正的省音才拆（l' d' j' qu'…），aujourd'hui 这类整体保留
+      if (ELISION.test(p)) { prefix = p; w = w.slice(w.indexOf("'") + 1); }
+    }
+    out.push({ raw, w, start: m.index, prefix });
+  }
+  return out;
+}
+function sentences(text) {
+  return text.replace(/\s+/g, ' ')
+    .split(/(?<=[.!?;:…])\s+/)
+    .map(s => s.trim())
+    .filter(s => s.length > 12 && s.length < 400);
+}
+
+/* ================= 变位引擎 ================= */
+/* 单数人称上 e → è 的动词（其余 -eler / -eter 动词走双写路线：appeler -> j'appelle） */
+const EGRAVE_VERBS = new Set(['acheter', 'racheter', 'mener', 'amener', 'emmener', 'promener',
+  'ramener', 'lever', 'enlever', 'élever', 'soulever', 'relever', 'peser', 'semer', 'crever',
+  'acheter', 'geler', 'peler', 'démener']);
+
+function stemOfRegular(inf) {
+  if (/er$/.test(inf)) {
+    const stem = inf.slice(0, -2);
+    let nousStem = stem, vousStem = stem;
+    if (/ger$/.test(inf)) { nousStem = stem + 'e'; }                   // mangeons（但 mangez）
+    if (/cer$/.test(inf)) { nousStem = stem.slice(0, -1) + 'ç'; }      // commençons（但 commencez）
+    // 词干交替：espér→espèr（é 变 è） / achèt（e 变 è） / appell（双写 l 或 t）
+    let mutStem = null;
+    if (/é/.test(stem.slice(-4))) {
+      const i = stem.lastIndexOf('é');
+      mutStem = stem.slice(0, i) + 'è' + stem.slice(i + 1);           // espérer -> espèr
+    } else if (EGRAVE_VERBS.has(inf)) {
+      const i = stem.lastIndexOf('e');
+      if (i >= 0) mutStem = stem.slice(0, i) + 'è' + stem.slice(i + 1); // acheter -> achèt
+    } else if (/(el|et)er$/.test(inf)) {
+      mutStem = stem + stem.slice(-1);                                 // appeler -> appell
+    }
+    return { main: stem, plural: nousStem, vous: vousStem, mute: mutStem, type: 'er' };
+  }
+  if (/ir$/.test(inf)) {
+    return { main: inf.slice(0, -2), plural: inf.slice(0, -2) + 'iss', vous: inf.slice(0, -2) + 'iss', type: 'ir' };
+  }
+  if (/re$/.test(inf)) {
+    return { main: inf.slice(0, -2), plural: inf.slice(0, -2), vous: inf.slice(0, -2), type: 're' };
+  }
+  return { main: inf.slice(0, -2), plural: inf.slice(0, -2), vous: inf.slice(0, -2), type: 'other' };
+}
+
+function futStem(inf) {
+  // perdre -> perdr- ，其余用完整不定式（parler -> parler-）
+  return /re$/.test(inf) ? inf.slice(0, -1) : inf;
+}
+
+function ppOfRegular(inf) {
+  if (/er$/.test(inf)) return inf.slice(0, -2) + 'é';      // parler -> parlé
+  if (/uire$/.test(inf)) return inf.slice(0, -3) + 'uit';  // conduire -> conduit
+  if (/ir$/.test(inf)) return inf.slice(0, -2) + 'i';      // finir -> fini
+  if (/re$/.test(inf)) return inf.slice(0, -2) + 'u';      // perdre -> perdu
+  return null;
+}
+
+function auxOf(inf) {
+  if (/^se\s|^s’/.test(inf)) return 'être';
+  return ETRE_VERBS.has(inf) ? 'être' : 'avoir';
+}
+
+function conjugate(inf, tense) {
+  const V = VERBS[inf];
+  if (V) {
+    if (tense === 'pres') return V.pres.slice();
+    if (tense === 'subj') return V.subj.slice();
+    if (tense === 'futur') return ['ai','as','a','ons','ez','ont'].map(e => V.fut + e);
+    if (tense === 'cond') return ['ais','ais','ait','ions','iez','aient'].map(e => V.fut + e);
+    if (tense === 'impar') {
+      let st = inf === 'être' ? 'ét' : V.pres[3].replace(/ons$/, '');
+      return ['ais','ais','ait','ions','iez','aient'].map(e => st + e);
+    }
+    if (tense === 'pc') {
+      const aux = V.aux;
+      const auxForms = conjugate(aux, 'pres');
+      return PRON.map((p, i) => auxForms[i] + ' ' + V.pp);
+    }
+  }
+  const S = stemOfRegular(inf);
+  let st = S.main, form;
+  switch (tense) {
+    case 'pres':
+      if (S.type === 'er') {
+        // -e / -es / -e, -ons / -ez, -ent（无声词尾用变音词干 espèr- / achèt-）
+        const m = S.mute || S.main;
+        return [m + 'e', m + 'es', m + 'e', S.plural + 'ons', S.vous + 'ez', m + 'ent'];
+      }
+      if (S.type === 'ir') {
+        const m = S.main;
+        return [m + 'is', m + 'is', m + 'it', S.plural + 'ons', S.plural + 'ez', S.plural + 'ent'];
+      }
+      if (S.type === 're') {
+        const m = S.main;
+        return [m + 's', m + 's', /d$/.test(m) ? m : m + 't', m + 'ons', m + 'ez', m + 'ent'];
+      }
+      break;
+    case 'impar': {
+      const nous = pluralNous(inf);
+      st = nous.replace(/issons$/, 'iss').replace(/ons$/, '');
+      if (/er$/.test(inf)) st = nous.replace(/geons$/, 'g').replace(/çons$/, 'ç').replace(/ons$/, '');
+      return ['ais','ais','ait','ions','iez','aient'].map(e => st + e);
+    }
+    case 'futur':
+      st = futStem(inf);
+      return ['ai','as','a','ons','ez','ont'].map(e => st + e);
+    case 'cond':
+      st = futStem(inf);
+      return ['ais','ais','ait','ions','iez','aient'].map(e => st + e);
+    case 'subj': {
+      st = pluralNous(inf).replace(/ons$/, '');
+      return ['e','es','e','ions','iez','ent'].map(e => {
+        // manger -> nous mangions（不是 mangeions）
+        if (/ge$/.test(st) && /^i/.test(e)) return st.slice(0, -1) + e;
+        return st + e;
+      });
+    }
+    case 'pc': {
+      const aux = auxOf(inf);
+      const pp = ppOfRegular(inf) || VERBS[inf]?.pp || '?';
+      return PRON.map((p, i) => conjugate(aux, 'pres')[i] + ' ' + pp);
+    }
+  }
+  return PRON.map(() => '—');
+}
+
+function pluralNous(inf) {
+  const V = VERBS[inf];
+  if (V) return V.pres[3];
+  const S = stemOfRegular(inf);
+  if (S.type === 'er') return S.plural + 'ons';
+  if (S.type === 'ir') return S.plural + 'ons';
+  if (S.type === 're') return S.main + 'ons';
+  return S.main + 'ons';
+}
+
+/* 预先建立「变位形式 → 原形」反查表，用于识别文本中的动词 */
+const FORM_MAP = new Map();
+const VERB_INF = new Set();   // 所有已知动词原形
+(function buildFormMap() {
+  const all = new Set(Object.keys(VERBS));
+  Object.keys(DICT).forEach(w => { if (DICT[w].pos === 'v') all.add(w); });
+  all.forEach(v => {
+    VERB_INF.add(v);
+    const seen = new Set();
+    const push = (f) => {
+      const clean = String(f).split(' ').pop().toLowerCase();
+      if (clean && !seen.has(clean) && clean !== v && clean.length > 2) {
+        seen.add(clean);
+        if (!FORM_MAP.has(clean)) FORM_MAP.set(clean, v);
+      }
+    };
+    TENSES.forEach(t => {
+      try {
+        conjugate(v, t.id).forEach(push);
+        // être 作助动词时过去分词的四种配合形式（allé / allée / allés / allées）
+        if (t.id === 'pc' && auxOf(v) === 'être') {
+          const pp = conjugate(v, 'pc')[0].split(' ').pop();
+          ['e', 's', 'es'].forEach(sfx => push(pp + sfx));
+        }
+      } catch (e) { /* 忽略个别异常动词 */ }
+    });
+  });
+})();
+
+/* ================= 词元还原 ================= */
+function lemmaOf(w) {
+  if (DICT[w]) return w;
+  const acc = w.replace(/[’']/g, '');
+  if (DICT[acc]) return acc;
+  for (const suf of ['ées', 'ée', 'és', 's', 'x', 'inement']) {
+    if (w.length > suf.length + 2 && w.endsWith(suf)) {
+      const cand = w.slice(0, -suf.length);
+      if (DICT[cand]) return cand;
+      const cand2 = cand + 'e';
+      if (DICT[cand2]) return cand2;
+    }
+  }
+  return null;
+}
+
+/* ================= 考点抽取 ================= */
+/* 数词（含 vingt-deux 这类组合）不参与词汇抽取 */
+const NUM_WORDS = new Set('zero un deux trois quatre cinq six sept huit neuf dix onze douze treize quatorze quinze seize vingt trente quarante cinquante soixante quatre-vingts cent mille million milliard'.split(' '));
+function isNumberWord(w) {
+  const parts = String(w).split('-');
+  return parts.length > 0 && parts.every(p => /^\d+$/.test(p) || NUM_WORDS.has(p) || /^(vingt|trente|quarante|cinquante|soixante)$/.test(p));
+}
+
+function extractVocab(text, opts = {}) {
+  const toks = tokenize(text);
+  const map = new Map();
+  const sentList = sentences(text);
+  // 统计每个词的「是否曾经句首大写出现过」，用于剔除人名地名
+  const capStat = new Map();
+  toks.forEach(t => {
+    const w = t.w;
+    const cur = capStat.get(w) || { total: 0, cap: 0 };
+    cur.total++;
+    if (/^[A-ZÀ-Þ]/.test(t.raw.replace(/^[^A-Za-zÀ-ÿ]*/, ''))) cur.cap++;
+    capStat.set(w, cur);
+  });
+  toks.forEach(t => {
+    const w = t.w;
+    if (w.length < 3 || w.length > 26) return;
+    if (/^\d+$/.test(w)) return;
+    if (isNumberWord(w)) return;
+    let lm = lemmaOf(w) || w;
+    let info = DICT[lm] || null;
+    let isVerb = VERB_INF.has(w) || (info && info.pos === 'v');
+    if (!info && FORM_MAP.has(w)) {
+      lm = FORM_MAP.get(w);
+      info = DICT[lm] || null;
+      isVerb = true;                       // 命中变位表 → 一定是动词，回填原形
+    }
+    if (FR_STOP.has(lm) || FR_STOP.has(w)) return;
+    // 剔除专有名词：词典里没有，且此形式在文中出现过句首以外的大写
+    if (!info) {
+      const st = capStat.get(w);
+      if (st && st.cap >= 1 && st.cap === st.total && !DICT[w]) return;
+    }
+    const k = lm;
+    if (!map.has(k)) {
+      map.set(k, {
+        id: k, lemma: k, forms: new Set(), count: 0,
+        pos: isVerb ? 'v' : (info?.pos || guessPos(lm)),
+        level: info?.level || null,
+        gender: info?.gender || null,
+        zh: info?.zh || '',
+        inDict: !!info,
+        sent: [], inBundle: false
+      });
+    }
+    const o = map.get(k);
+    o.count++;
+    o.forms.add(t.raw.toLowerCase());
+  });
+  // 给每个词配一句原文例句
+  map.forEach(o => {
+    const re = new RegExp('\\b' + o.lemma.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
+    const hit = sentList.find(s => re.test(s));
+    if (hit) o.sent = [hit];
+  });
+  const arr = [...map.values()];
+  // CEFR 兜底：按频次与词长推断
+  arr.forEach(o => {
+    if (!o.level) {
+      const rank = estimateRank(o);
+      o.level = rankToLevel(rank, o.count);
+      o.levelGuess = true;
+    }
+    if (!o.zh) o.zhGuess = true;
+  });
+  return arr.sort((a, b) => b.count - a.count);
+}
+
+function countStopLike(w) { return false; }
+
+function estimateRank(o) {
+  let score = 0;
+  score += Math.min(o.count, 12) * 3;
+  score += o.lemma.length <= 5 ? 8 : (o.lemma.length <= 8 ? 4 : 0);
+  if (/ment$/.test(o.lemma)) score += 3;
+  if (/tion$|sion$|té$|ité$/.test(o.lemma)) score += 2;
+  return score;
+}
+function rankToLevel(score, count) {
+  if (score >= 30) return 'A1';
+  if (score >= 20) return 'A2';
+  if (score >= 12) return 'B1';
+  return 'B2';
+}
+
+function guessPos(w) {
+  // 命中变位表的一律算动词，避免 appelle → adj 这类误判
+  if (VERB_INF.has(w) || FORM_MAP.has(w)) return 'v';
+  if (/(ment)$/.test(w) && w.length > 5) return 'adv';
+  if (/(eux|euse|ique|able|ible|ain|el|al)$/.test(w)) return 'adj';
+  if (/(tion|sion|té|ité|ance|ence|esse|ise|ude|ade|ie)$/.test(w)) return 'n';
+  return 'n';
+}
+
+/* 语法点检测：按 DELF 常见考点做规则扫描 */
+const GRAMMAR_RULES = [
+  { id: 'pc', name: '复合过去时', re: /\b(ai|as|a|avons|avez|ont|suis|es|est|sommes|êtes|sont)\s+(\w+(é|é\(e\)|u|is|it|ert))\b/gi, level: 'A1' },
+  { id: 'impar', name: '未完成过去时', re: /\b\w+(ais|ais|ait|ions|iez|aient)\b/gi, level: 'A2' },
+  { id: 'futur', name: '简单将来时', re: /\b\w+(rai|ras|ra|rons|rez|ront)\b/gi, level: 'A2' },
+  { id: 'cond', name: '条件式', re: /\b\w+(rais|rais|rait|rions|riez|raient)\b/gi, level: 'B1' },
+  { id: 'subj', name: '虚拟式', re: /\bque\s+(il|elle|je|tu|nous|vous|ils|elles|on)\s+\w+(e|es|e|ions|iez|ent)\b/gi, level: 'B1' },
+  { id: 'partitif', name: '部分冠词', re: /\b(du|de la|des)\s+\w+/gi, level: 'A1' },
+  { id: 'negation', name: '否定结构', re: /\bne\s+\w+\s+(pas|plus|jamais|rien|personne|aucun)\b/gi, level: 'A1' },
+  { id: 'relatif', name: '关系代词', re: /\b(qui|que|dont|où|lequel|laquelle|lesquels|lesquelles)\b/gi, level: 'A2' },
+  { id: 'pronom', name: '宾语代词', re: /\b(je|tu|il|elle|nous|vous|ils|elles)\s+(le|la|les|lui|leur|y|en)\b/gi, level: 'A2' },
+  { id: 'passif', name: '被动语态', re: /\b(est|sont|était|étaient|sera|seront)\s+\w+(é|ée|és|ées)\s+(par|de)\b/gi, level: 'B1' },
+  { id: 'imperatif', name: '命令式', re: /^[^.?!]*\b(va|allons|allez|prends|prenons|prenez|viens|venons|venez)\b/gi, level: 'A2' },
+  { id: 'gerondif', name: '副动词 / 现在分词', re: /\ben\s+\w+ant\b/gi, level: 'B1' },
+  { id: 'pronominal', name: '代词式动词', re: /\b(je me|tu te|il se|elle se|nous nous|vous vous|ils se|elles se)\s+\w+/gi, level: 'A2' },
+  { id: 'si', name: 'si 条件从句', re: /\bsi\s+\w+\s+(avais|avait|étais|était|ai|a|est)\b/gi, level: 'B1' },
+  { id: 'futurproche', name: '最近将来时', re: /\b(vais|vas|va|allons|allez|vont)\s+\w+(er|ir|re|oir)\b/gi, level: 'A1' }
+];
+
+function extractGrammar(text) {
+  return GRAMMAR_RULES.map(r => {
+    const m = text.match(new RegExp(r.re.source, 'gi')) || [];
+    return { id: r.id, name: r.name, level: r.level, count: m.length, samples: [...new Set(m.map(s => s.trim()))].slice(0, 3) };
+  }).filter(g => g.count > 0).sort((a, b) => b.count - a.count);
+}
+
+/* ================= 易错点检测（启发式） ================= */
+const ENGLISH_LEAK = new Set(['the','this','is','are','of','with','and','for','to','we','you','have','very','good','like','make','think','because','people','now','want','need','get','really','about','what','where','when','not','can','will','my','your']);
+
+function detectSLA(text) {
+  const issues = [];
+  const toks = tokenize(text);
+  const add = (id, snippet, extra) => issues.push({ id, snippet, extra: extra || '' });
+  const known = new Set([...Object.keys(DICT), ...FR_STOP]);   // 免误报：la ≠ là
+  const noAcc = new Map();
+  Object.keys(DICT).forEach(w => { const s = stripAccents(w); if (s !== w && !noAcc.has(s) && !known.has(s)) noAcc.set(s, w); });
+
+  for (let i = 0; i < toks.length; i++) {
+    const t = toks[i], prev = toks[i - 1], next = toks[i + 1];
+    // 1. 音符缺失
+    if (noAcc.has(t.w) && !known.has(t.w)) add('accent', t.raw);
+    // 2. 英语混入
+    if (ENGLISH_LEAK.has(t.w)) add('english', t.raw, '疑似英语单词混入法语写作');
+    // 3. 阴阳性：le/la + 已知名词
+    if (prev && /^(le|la|un|une)$/.test(prev.w)) {
+      const info = DICT[t.w];
+      if (info && info.gender) {
+        const expectM = /^(le|un)$/.test(prev.w);
+        const actualM = info.gender === 'm';
+        if (expectM !== actualM) add('genre', prev.raw + ' ' + t.raw, `应为 ${actualM ? 'le' : 'la'} ${t.w}`);
+      }
+    }
+    // 4. a / à 混用： a 后接冠词或专有名词
+    if (t.w === 'a' && next && /^(le|la|les|ma|mon|ta|ton|sa|son|notre|votre|leur|leur|ce|cette|cet|ces)$/.test(next.w)) {
+      add('articles', prev ? prev.raw + ' a ' + next.raw : 'a ' + next.raw, '此处大概率应为介词 à');
+    }
+    // 5. de + le / de + les 未缩合
+    if (t.w === 'de' && next && /^(le|les)$/.test(next.w)) add('de', 'de ' + next.raw, `应缩合为 ${next.w === 'le' ? 'du' : 'des'}`);
+    // 6. que + 疑似变位动词（应为 qui）
+    if (t.w === 'que' && next && FORM_MAP.has(next.w)) add('que_qui', 'que ' + next.raw, '关系代词后接变位动词时，通常应为 qui');
+    // 7. suis/a + 过去分词 → 提示 être/avoir
+    if (prev && /^(suis|es|est|sommes|êtes|sont)$/.test(prev.w) && FORM_MAP.has(t.w)) {
+      const v = FORM_MAP.get(t.w);
+      if (v && auxOf(v) === 'avoir') add('aux', prev.raw + ' ' + t.raw, `${v} 的复合过去时用 avoir 作助动词`);
+    }
+  }
+  // 8. 口语省略 ne
+  const oralNeg = text.match(/\b(j'ai|je|tu|il|elle|on|nous|vous|ils|elles)\s+(ai|as|a|avons|avez|ont|suis|es|est|sont)\s+pas\b/gi);
+  (oralNeg || []).forEach(s => add('neg', s.trim(), '书面写作需补全 ne ... pas'));
+
+  const grouped = {};
+  issues.forEach(i => {
+    if (!grouped[i.id]) grouped[i.id] = { id: i.id, count: 0, samples: [] };
+    grouped[i.id].count++;
+    if (grouped[i.id].samples.length < 4) grouped[i.id].samples.push(i.snippet + (i.extra ? '  — ' + i.extra : ''));
+  });
+  return Object.values(grouped).map(g => {
+    const lib = SLA_LIB.find(s => s.id === g.id) || { name: g.id, level: '?', why: '', tip: '' };
+    return { ...lib, ...g };
+  }).sort((a, b) => b.count - a.count);
+}
+
+/* ================= 间隔重复调度（SM-2 简化版） ================= */
+function initCard(lemma, data) {
+  return {
+    lemma, ...data, due: todayISO(), interval: 0, reps: 0, ef: 2.5, lapses: 0,
+    history: [], suspended: false, added: Date.now()
+  };
+}
+function todayISO(d) {
+  const x = d ? new Date(d) : new Date();
+  return x.toISOString().slice(0, 10);
+}
+function addDays(n, from) {
+  const d = from ? new Date(from) : new Date();
+  d.setDate(d.getDate() + n);
+  return todayISO(d);
+}
+function review(card, quality) {
+  // quality: 0 忘记 / 1 困难 / 2 一般 / 3 简单
+  const q = Math.max(0, Math.min(3, quality));
+  card.history.push({ t: Date.now(), q });
+  card.reps++;
+  if (q === 0) { card.lapses++; card.interval = 0; card.ef = Math.max(1.3, card.ef - 0.2); }
+  else {
+    if (card.interval === 0) card.interval = q === 1 ? 1 : (q === 2 ? 3 : 5);
+    else card.interval = Math.round(card.interval * card.ef * (q === 1 ? 0.8 : q === 3 ? 1.3 : 1));
+    card.ef = Math.max(1.3, card.ef + (0.1 - (3 - q) * (0.08 + (3 - q) * 0.02)));
+  }
+  card.due = addDays(Math.max(1, card.interval));
+  return card;
+}
+function dueCards(cards) {
+  const t = todayISO();
+  return cards.filter(c => !c.suspended && c.due <= t);
+}
+function daysUntil(dateISO) {
+  const a = new Date(todayISO()), b = new Date(dateISO);
+  return Math.round((b - a) / 86400000);
+}
+
+/* ================= 受限文本生成（离线模板版） ================= */
+const GEN_TEMPLATES = {
+  A1: [
+    "{Def} est vraiment {Adj}.",
+    "J'ai {Ind} depuis deux ans.",
+    "{Subj} {Vil} souvent le {Jour}.",
+    "Il y a {Ind2} près de {Def2}."
+  ],
+  A2: [
+    "Quand j'étais enfant, je {Vimparje} souvent dans {Def}.",
+    "Hier, j'ai {Vpp} {Def2} parce qu'il était {Adj2}.",
+    "Il faut que vous {Vsubjvous} avant {Time}.",
+    "Si tu {Vsubjtu}, nous pourrons parler de {Def3}."
+  ],
+  B1: [
+    "Bien que {Def} soit {Adj}, nous avons choisi {DE}{Vinf} dès le début.",
+    "Il est essentiel que chacun {Vsubjil} {Ind} avant {Time}.",
+    "Grâce {Adef2}, j'ai enfin pu {Vinf} sans difficulté.",
+    "Avant {DE}{Vinf}, il aurait fallu prendre {Def3} au sérieux."
+  ],
+  B2: [
+    "Force est de constater que {Def} demeure {Adj}, en dépit des efforts engagés.",
+    "Encore faudrait-il que les autorités prennent {Def2} en considération.",
+    "Quelles que soient les réserves émises à propos de {Def3}, la situation n'a guère évolué.",
+    "Il n'est pas exclu que {Subj} finisse par {Vinf}, à condition d'en avoir les moyens."
+  ]
+};
+const GEN_SLOT = {
+  Subj: ['Mon frère', 'Ma voisine', 'Cet étudiant', 'Ma collègue'],
+  Time: ['midi', 'huit heures', 'la fin du mois'],
+  Jour: ['lundi', 'samedi', 'week-end'],
+  NOUNS: [
+    { w: 'quartier', gen: 'm' }, { w: 'maison', gen: 'f' }, { w: 'projet', gen: 'm' }, { w: 'ville', gen: 'f' },
+    { w: 'travail', gen: 'm' }, { w: 'école', gen: 'f' }, { w: 'marché', gen: 'm' }, { w: 'lettre', gen: 'f' },
+    { w: 'musée', gen: 'm' }, { w: 'rue', gen: 'f' }, { w: 'restaurant', gen: 'm' }, { w: 'université', gen: 'f' }
+  ],
+  ADJS: [{ w: 'difficile' }, { w: 'important' }, { w: 'intéressant' }, { w: 'passionnant' }, { w: 'simple' }],
+  VERBS: ['travailler', 'voyager', 'choisir', 'réussir', 'préparer', 'comprendre']
+};
+/* 省音 + 性数配合：给定名词与冠词类型，返回正确形式 */
+const VOWEL = /^[aeiouyàâäéèêëîïôöùûüh]/i;
+function article(kind, word, gender) {
+  const w = String(word);
+  if (kind === 'du') {                                   // de + le / l'
+    return (VOWEL.test(w) ? "de l'" : 'du ') + w;
+  }
+  if (kind === 'part') {                                 // du / de la / de l'
+    return (VOWEL.test(w) ? "de l'" : (gender === 'f' ? 'de la ' : 'du ')) + w;
+  }
+  if (kind === 'ind') {                                  // un / une
+    return (gender === 'f' ? 'une ' : 'un ') + w;
+  }
+  if (kind === 'dem') {                                  // ce / cet / cette
+    if (gender === 'f') return 'cette ' + w;
+    return (VOWEL.test(w) ? 'cet ' : 'ce ') + w;
+  }
+  if (kind === 'a') {                                    // à + le/la/les/l' → au / aux
+    return (VOWEL.test(w) ? "à l'" : (gender === 'f' ? 'à la ' : 'au ')) + w;
+  }
+  if (kind === 'de') {                                   // de + voyelle → d'
+    return (VOWEL.test(w) ? "d'" : 'de ') + w;
+  }
+  // défini
+  if (VOWEL.test(w)) return "l'" + w;
+  return (gender === 'f' ? 'la ' : 'le ') + w;
+}
+function agreeAdj(adj, gender, plural) {
+  let a = String(adj);
+  if (gender === 'f') a += 'e';
+  if (plural) a += 's';
+  return a;
+}
+function shuffleIdx(n) { const a = [...Array(n).keys()]; for (let i = n - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+function isPluralish(w) { return /(s|x|z)$/.test(String(w)) && !/(ais|ois|és)$/.test(w); }
+
+function genPassage(level, vocab, targetGrammar, n = 3) {
+  const tpls = GEN_TEMPLATES[level] || GEN_TEMPLATES.A2;
+  const usable = (x, pos) => x.pos === pos && /^[a-zà-ÿ]/.test(x.lemma) && x.lemma.length < 18 && !/\s/.test(x.lemma);
+  // 单数名词槽不用复数名词（否则会出 le dimanches 这种东西）
+  const singular = x => !/(s|x|z)$/.test(x.lemma) && !/^(vacances|gens)$/.test(x.lemma);
+  const nounsIn = vocab.filter(x => usable(x, 'n') && singular(x));
+  const verbsIn = vocab.filter(x => usable(x, 'v'));
+  const adjsIn = vocab.filter(x => usable(x, 'adj'));
+  const pickNoun = () => {
+    if (nounsIn.length) {
+      const x = nounsIn[Math.floor(Math.random() * nounsIn.length)];
+      return { w: x.lemma, gen: x.gender || (/[eé]$/.test(x.lemma) ? 'f' : 'm') };
+    }
+    return GEN_SLOT.NOUNS[Math.floor(Math.random() * GEN_SLOT.NOUNS.length)];
+  };
+  const pickAdj = () => (adjsIn.length ? { w: adjsIn[Math.floor(Math.random() * adjsIn.length)].lemma } : GEN_SLOT.ADJS[Math.floor(Math.random() * GEN_SLOT.ADJS.length)]);
+  const pickVerb = () => (verbsIn.length ? verbsIn[Math.floor(Math.random() * verbsIn.length)].lemma : GEN_SLOT.VERBS[Math.floor(Math.random() * GEN_SLOT.VERBS.length)]);
+  const pick = a => a[Math.floor(Math.random() * a.length)];
+  const safe = (fn, dflt) => { try { const v = fn(); return /undefined|—|^$/.test(v) ? dflt : v; } catch (e) { return dflt; } };
+
+  const out = [], recycled = [];
+  const order = shuffleIdx(tpls.length);
+  for (let i = 0; i < n; i++) {
+    let s = tpls[order[i % tpls.length]];
+    const N1 = pickNoun(), N2 = pickNoun(), N3 = pickNoun();
+    const A1 = pickAdj(), A2 = pickAdj(), V = pickVerb();
+    recycled.push(N1.w, N2.w, V);
+    const map = {
+      Def: article('def', N1.w, N1.gen), Def2: article('def', N2.w, N2.gen), Def3: article('def', N3.w, N3.gen),
+      Ind: article('ind', N1.w, N1.gen), Ind2: article('ind', N2.w, N2.gen),
+      Part: article('part', N1.w, N1.gen),
+      Adef: article('a', N1.w, N1.gen), Adef2: article('a', N2.w, N2.gen),
+      DE: VOWEL.test(V) ? "d'" : 'de ',
+      Adj: agreeAdj(A1.w, N1.gen), Adj2: agreeAdj(A2.w, N2.gen),
+      Subj: pick(GEN_SLOT.Subj), Time: pick(GEN_SLOT.Time), Jour: pick(GEN_SLOT.Jour),
+      Vil: safe(() => conjugate(V, 'pres')[2], 'travaille'),
+      Vimparje: safe(() => conjugate(V, 'impar')[0], 'travaillais'),
+      Vsubjvous: safe(() => conjugate(V, 'subj')[4], 'choisissiez'),
+      Vsubjtu: safe(() => conjugate(V, 'subj')[1], 'choisisses'),
+      Vsubjil: safe(() => conjugate(V, 'subj')[2], 'choisisse'),
+      Vpp: safe(() => (VERBS[V] ? VERBS[V].pp : ppOfRegular(V)) || 'préparé', 'préparé'),
+      Vinf: V
+    };
+    s = s.replace(/\{(\w+)\}/g, (m, k) => (map[k] !== undefined ? map[k] : m));
+    out.push(s.replace(/\s+/g, ' ').trim());
+  }
+  return {
+    text: out.join(' '),
+    note: '离线模板生成：句式为受控结构，所有名词都做了省音与阴阳性处理，词汇优先取自你导入的材料。接入 API 后替换为真正的受限生成——由模型保证目标词在上下文里自然复现。',
+    recycled: [...new Set(recycled)],
+    targets: targetGrammar?.slice(0, 2).map(g => g.name) || []
+  };
+}
+
+/* ================= 存储 ================= */
+const LS_KEY = 'allez_v1';
+function loadState() {
+  try {
+    const raw = localStorage.getItem(LS_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch (e) { return null; }
+}
+function saveState(s) {
+  try {
+    localStorage.setItem(LS_KEY, JSON.stringify(s));
+    return true;
+  } catch (e) {
+    /* 配额超限通常是大 PDF 的正文撑爆了 localStorage（上限约 5 MB）。
+       丢掉 rawText 再存一次——复习进度和卡片比原文重要得多。 */
+    try {
+      const slim = Object.assign({}, s, { rawText: '' });
+      localStorage.setItem(LS_KEY, JSON.stringify(slim));
+      if (typeof window !== 'undefined' && window.notifyStorageTrim) window.notifyStorageTrim();
+      return false;
+    } catch (e2) { return false; }
+  }
+}
+
+/* ================= TTS ================= */
+function speak(text, rate) {
+  if (!('speechSynthesis' in window)) return false;
+  try {
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = 'fr-FR';
+    u.rate = rate || 0.9;
+    const v = window.speechSynthesis.getVoices().find(v => /fr[-_]?FR|French/i.test(v.lang + v.name));
+    if (v) u.voice = v;
+    window.speechSynthesis.speak(u);
+    return true;
+  } catch (e) { return false; }
+}
+if ('speechSynthesis' in window) { window.speechSynthesis.getVoices(); }
+
+/* ================= 答案比对 ================= */
+function normAns(s) {
+  return stripAccents(String(s)).toLowerCase()
+    .replace(/[’'ʼ`·.,!?;:"()]/g, '').replace(/\s+/g, '').trim();
+}
+function gradeAnswer(user, expect) {
+  const a = normAns(user), b = normAns(expect);
+  if (!a) return { ok: false, msg: '请填写作答' };
+  if (a === b) {
+    return { ok: true, msg: '正确', note: stripAccents(expect) !== expect ? '请注意音符：' + expect : '' };
+  }
+  if (stripAccents(expect).toLowerCase() !== expect.toLowerCase() && a === stripAccents(expect).toLowerCase().trim()) {
+    return { ok: false, msg: '只差音符', note: '正确写法：' + expect };
+  }
+  return { ok: false, msg: '不正确', note: '参考答案：' + expect };
+}
+
+;
+/* Allez! — 应用层 */
+const $ = s => document.querySelector(s);
+const $$ = s => Array.from(document.querySelectorAll(s));
+
+/* ---- 站主可选部署的共享代理 ----
+   留空字符串表示没部署，此时每个访客都得自己填 Key。
+   部署后由 build.js 把下面两个占位符替换成真实值（读环境变量 ALLEZ_PROXY_BASE / _MODEL）。
+   访客在这个模式下不需要 Key —— Key 藏在 Workers 的环境变量里。 */
+const PROXY_BASE = '';
+const PROXY_MODEL = '';
+const hasProxy = () => /^https?:\/\//.test(PROXY_BASE);
+
+/* 到底能不能调用模型：自己有 Key，或者站主配了共享代理且访客选了它 */
+function hasLLM() { return !!S.api.key || (hasProxy() && S.api.preset === 'proxy'); }
+
+const DEFAULT_STATE = () => ({
+  exam: 'B1', examDate: '', rawText: '',
+  vocab: [], grammar: [], cards: [], mode: 'recognize',
+  api: { provider: 'claude', base: '', key: '', model: '' },
+  ocr: { engine: 'auto', model: '', langPath: '', maxPages: 20 },
+  stats: { reviews: 0, correct: 0 }, done: {}
+});
+
+let S = loadState() || DEFAULT_STATE();
+// 老版本存档没有 ocr 字段，补齐默认值，省得到处写判空
+S.ocr = Object.assign({ engine: 'auto', model: '', langPath: '', maxPages: 20 }, S.ocr || {});
+let Q = null;               // 当前题目
+let pendingCalibrate = false;
+
+function save() { saveState(S); }
+
+/* ---------------- 服务商预设 ----------------
+   让用户自己填 Endpoint 是最劝退的一步。这里把常见服务商的地址和模型预置好，
+   选完之后只需要粘一个 Key。免费额度情况写在 note 里，不吹不瞒。 */
+const API_PRESETS = {
+  proxy: {
+    label: '站内额度（不用自己申请 Key）',
+    provider: 'openai', base: PROXY_BASE, model: PROXY_MODEL, vision: PROXY_MODEL, shared: true,
+    note: '<b>本站主人已经配好网络和 Key，选这项直接用。</b>住的请求会经过站主的代理转发，' +
+      '所以请<b>不要提交证件、病历、未公开试卷这类敏感材料</b>；日常练习材料没问题。' +
+      '有每日次数上限，用完了会提示你，届时可以在下面换成自己的 Key。'
+  },
+  zhipu: {
+    label: '智谱 GLM（国内直连 · 有永久免费档）',
+    provider: 'openai', base: 'https://open.bigmodel.cn/api/paas/v4',
+    model: 'glm-4-flash', vision: 'glm-4v-flash',
+    note: '<b>国内直连，注册送额度，GLM-4-Flash 长期免费。</b>注册地址 open.bigmodel.cn，控制台 → API Keys 里生成。' +
+      '视觉模型名若报错（平台会调整），把下面「视觉模型」改成控制台里当前可用的免费视觉模型即可。'
+  },
+  siliconflow: {
+    label: '硅基流动（国内 · 小模型永久免费）',
+    provider: 'openai', base: 'https://api.siliconflow.cn/v1',
+    model: 'Qwen/Qwen2.5-7B-Instruct', vision: 'Qwen/Qwen2.5-VL-32B-Instruct',
+    note: '<b>9B 以下模型永久免费</b>，国内延迟低。注册 siliconflow.cn，控制台生成 Key。' +
+      '注意：免费档只覆盖小模型，视觉模型（VL）通常要付费，OCR 建议改用 OpenRouter 的免费视觉模型。'
+  },
+  openrouter: {
+    label: 'OpenRouter（免费视觉模型最多）',
+    provider: 'openai', base: 'https://openrouter.ai/api/v1',
+    model: 'openrouter/free', vision: 'baidu/qianfan-ocr-fast:free',
+    note: '<b>一个 Key 通吃几百个模型，带 :free 后缀的不要钱。</b>注册 openrouter.ai 即送少量额度，免费模型另有每日限额。' +
+      'OCR 默认用百度千帆的免费 OCR 专用模型；nvidia/nemotron-nano-12b-v2-vl:free 也很强，可以换着试。'
+  },
+  gemini: {
+    label: 'Google Gemini（有免费额度）',
+    provider: 'openai', base: 'https://generativelanguage.googleapis.com/v1beta/openai',
+    model: 'gemini-2.0-flash', vision: 'gemini-2.0-flash',
+    note: '走 Google 官方的 OpenAI 兼容端点。免费额度足够个人用，但需要能访问 Google 服务。'
+  },
+  deepseek: {
+    label: 'DeepSeek（国内 · 便宜）',
+    provider: 'openai', base: 'https://api.deepseek.com/v1',
+    model: 'deepseek-chat', vision: '',
+    note: '国内直连、价格低，但<b>没有视觉模型</b>，OCR 功能不可用。只想要中文释义和写作批改的话性价比很高。'
+  },
+  openai: {
+    label: 'OpenAI 官方',
+    provider: 'openai', base: 'https://api.openai.com/v1',
+    model: 'gpt-4o-mini', vision: 'gpt-4o-mini',
+    note: '需要能访问 OpenAI 服务。gpt-4o-mini 价格很低，个人使用每月通常几块钱。'
+  },
+  claude: {
+    label: 'Anthropic Claude',
+    provider: 'claude', base: 'https://api.anthropic.com',
+    model: 'claude-opus-4-6', vision: 'claude-opus-4-6',
+    note: '法语质量最好（重音、语体、受限生成都更稳），但需要能访问 Anthropic 服务。'
+  },
+  custom: {
+    label: '自定义 / 中转（OpenAI 兼容）',
+    provider: 'openai', base: '', model: '', vision: '',
+    note: '填你自己的中转地址。注意：中转方能看到你的请求内容，涉密材料慎选。'
+  }
+};
+
+function applyPreset(key, fill) {
+  const p = API_PRESETS[key] || API_PRESETS.custom;
+  const noteEl = $('#presetNote');
+  if (noteEl) noteEl.innerHTML = p.note;
+  // 共享代理模式下地址、模型、Key 都由服务端决定，摆在这只会让人困惑
+  ['#apiKeyRow', '#apiBaseRow', '#apiModelRow'].forEach(s => {
+    const el = $(s);
+    if (el) el.classList.toggle('hide', !!p.shared);
+  });
+  if (!fill) return;
+  if ($('#apiBase')) $('#apiBase').value = p.base;
+  if ($('#apiModel')) $('#apiModel').value = p.model;
+  if ($('#ocrModel') && p.vision) $('#ocrModel').value = p.vision;
+}
+
+/* ---------------- 导航 ---------------- */
+function switchTab(t) {
+  $$('#tabs button').forEach(b => b.classList.toggle('on', b.dataset.t === t));
+  $$('section[id^=p-]').forEach(s => s.classList.add('hide'));
+  $('#p-' + t).classList.remove('hide');
+  if (t === 'map') renderMap();
+  if (t === 'train') nextQuestion();
+  if (t === 'plan') renderPlan();
+  if (t === 'report') renderReport();
+  if (t === 'sla') renderSLA();
+  if (t === 'guide' && window.Guide) window.Guide.render();
+  window.scrollTo(0, 0);
+}
+$$('#tabs button').forEach(b => b.onclick = () => switchTab(b.dataset.t));
+
+/* ---------------- 导入 ---------------- */
+{
+  const sel = $('#apiPreset');
+  if (sel) {
+    const keys = Object.keys(API_PRESETS).filter(k => k !== 'proxy' || hasProxy());
+    sel.innerHTML = keys.map(k => `<option value="${k}">${API_PRESETS[k].label}</option>`).join('');
+    // 老存档没有 preset，按 base 反推，推不出来就当自定义
+    let guess = S.api.preset || (hasProxy() ? 'proxy' : 'custom');
+    if (!S.api.preset && S.api.base) {
+      guess = keys.find(k => API_PRESETS[k].base && S.api.base.indexOf(API_PRESETS[k].base.replace(/^https?:\/\//, '')) >= 0)
+        || (hasProxy() ? 'proxy' : 'custom');
+    }
+    if (keys.indexOf(guess) < 0) guess = 'custom';
+    sel.value = guess;
+    sel.onchange = () => applyPreset(sel.value, true);
+    applyPreset(guess, false);
+  }
+  if (S.api) { $('#apiBase').value = S.api.base || ''; $('#apiKey').value = S.api.key || ''; $('#apiModel').value = S.api.model || ''; }
+}
+$('#exam').value = S.exam || 'B1';
+$('#examDate').value = S.examDate || '';
+if (S.rawText) { $('#src').value = S.rawText; updateSrcStat(); }
+
+function updateSrcStat() {
+  const t = $('#src').value;
+  const words = (t.match(/[A-Za-zÀ-ÿ]+/g) || []).length;
+  $('#srcStat').textContent = `${words} 词 · ${sentences(t).length} 句`;
+}
+$('#src').oninput = updateSrcStat;
+
+/* ========== 文件导入：PDF / txt / md / csv ==========
+   体积策略：
+     · 100 MB 硬拒 —— 再大浏览器主线程会直接卡死
+     · 25 MB / 200 页起软提示 —— 让用户知道要等
+     · 正文最终截到 MAX_TEXT 字符 —— 超过这个量对背单词没意义 */
+const MAX_BYTES = 100 * 1024 * 1024;
+const WARN_BYTES = 25 * 1024 * 1024;
+const WARN_PAGES = 200;
+const MAX_TEXT = 400000;
+
+const fmtSize = b => (b < 1024 * 1024 ? (b / 1024).toFixed(0) + ' KB' : (b / 1024 / 1024).toFixed(1) + ' MB');
+
+// big PDF 的正文会撑爆 localStorage（约 5 MB），集合时被自动裁掉，这里给用户一个交代
+window.notifyStorageTrim = function () {
+  setProg('浏览器本地存储放不下这份材料了，已经<b>丢掉原文正文</b>以保住你的单词卡和复习进度（不影响当前会话里继续用）。', true);
+};
+
+function setProg(html, show) {
+  const el = $('#pdfProg');
+  if (!el) return;
+  el.innerHTML = html;
+  el.classList.toggle('hide', !show);
+}
+
+$('#fileInput').onchange = e => {
+  const f = e.target.files[0];
+  e.target.value = '';               // 允许连续选同一个文件
+  if (f) handleFile(f);
+};
+
+// 拖拽：整页随便放，滚动区也能接住
+['dragover', 'drop'].forEach(ev => {
+  window.addEventListener(ev, e => { e.preventDefault(); }, false);
+});
+window.addEventListener('drop', e => {
+  const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+  if (f) handleFile(f);
+}, false);
+
+async function handleFile(f) {
+  if (f.size > MAX_BYTES) {
+    alert(`这个文件有 ${fmtSize(f.size)}，超过 100 MB 上限。\n建议先拆成几份（比如按章节导出），只留跟考试相关的部分。`);
+    return;
+  }
+  const isPdf = /\.pdf$/i.test(f.name) || /pdf/i.test(f.type || '');
+  if (isPdf) return await handlePdf(f);
+
+  // 图片：直接当一页丢去 OCR（讲义拍照、扫描 App 导出的单页都是这种）
+  const isImg = /^image\//.test(f.type || '') || /\.(png|jpe?g|webp|bmp|tiff?|heic)$/i.test(f.name || '');
+  if (isImg) return await handleImage(f);
+
+  if (f.size > WARN_BYTES && !confirm(`纯文本文件有 ${fmtSize(f.size)}，解析会比较慢。继续？`)) return;
+  const r = new FileReader();
+  r.onload = () => {
+    $('#src').value = String(r.result).slice(0, MAX_TEXT);
+    updateSrcStat();
+    setProg(`已载入 <b>${f.name}</b>（${fmtSize(f.size)}）`, true);
+  };
+  r.readAsText(f, 'utf-8');
+}
+
+async function handlePdf(f) {
+  const big = f.size > WARN_BYTES;
+  if (big && !confirm(`这份 PDF 有 ${fmtSize(f.size)}，页数多的话可能要等十几秒，期间页面会卡住。\n继续吗？`)) return;
+
+  setProg(`正在解析 <b>${f.name}</b>（${fmtSize(f.size)}）…`, true);
+  await new Promise(r => setTimeout(r, 30));   // 让这行提示先画出来
+
+  const t0 = Date.now();
+  try {
+    const bytes = new Uint8Array(await f.arrayBuffer());
+    const res = await window.PDFText.extractPdfText(bytes, (pct, label) => {
+      setProg(`正在解析 <b>${f.name}</b> — ${label}<br><span style="opacity:.6">${pct}%</span>`, true);
+    });
+    const ms = Date.now() - t0;
+
+    // 有文本层就用文本层 —— 比 OCR 准得多，也快得多
+    if (!res.scanned && res.text.trim().length > 80) {
+      $('#src').value = res.text.slice(0, MAX_TEXT);
+      updateSrcStat();
+      let note = `已从 PDF 提取 <b>${res.pageCount}</b> 页 / <b>${res.text.length}</b> 字符，用时 ${ms} ms。`;
+      if (res.text.length > MAX_TEXT) note += ` 超长部分已截断（保留前 ${MAX_TEXT} 字符），足够抽考点了。`;
+      if (res.pageCount > WARN_PAGES) note += ` 页数偏多，建议按章节拆分成几个文件分别解析，速度会快很多。`;
+      setProg(note, true);
+      clearOcrPanel();
+      return;
+    }
+
+    // 文本很薄：试着把页面图片抠出来，能抠到就给 OCR 面板
+    setProg(`这份 PDF 几乎没有文本层（扫描件？），正在取页面图片…`, true);
+    await new Promise(r => setTimeout(r, 30));
+    let imgs = { pages: [], unsupported: [], pageCount: res.pageCount || 0 };
+    try { imgs = await window.OCR.extractPageImages(bytes, (p, l) => setProg(`取页面图片 — ${l}`, true)); }
+    catch (e) { /* 抠不出来就走原来的提示 */ }
+
+    if (imgs.pages.length) { showOcrPanel(f.name, imgs); return; }
+
+    setProg(`<b>没能读出文字</b>（${res.pageCount} 页，文本层 ${res.text.length} 字符，也取不到页面图片）。
+      <br>常见原因：加密的 PDF、纯矢量图、或者用了 JPXDecode（JPEG 2000）这种浏览器解不了的压缩。
+      <br>试试用系统「预览」打开后重新导出一份，或者直接在原文里复制粘贴到下面的框里。`, true);
+  } catch (err) {
+    setProg(`<b>解析失败：</b>${err && err.message ? err.message : err}
+      <br>常见原因：文件加密、PDF 损坏、或者用了不支持的压缩算法。先把 PDF 用系统预览另存一份再试。`, true);
+  }
+}
+
+async function handleImage(f) {
+  setProg(`这是一张图片（${fmtSize(f.size)}），准备识别…`, true);
+  $('#ocrPanel').innerHTML = '';
+  await runOcr([{ blob: f, page: 1 }], f.name);
+}
+
+/* ========== OCR ========== */
+let pendingScan = null;        // 当前待识别的页面图片
+
+function clearOcrPanel() { const p = $('#ocrPanel'); if (p) p.innerHTML = ''; }
+
+function ocrEngineOptions(sel) {
+  return [['auto', '自动（有 Key 用视觉模型，否则 Tesseract）'], ['vision', '视觉模型（需要 API Key）'], ['tesseract', 'Tesseract.js（本地，需下载模型）']]
+    .map(([v, t]) => `<option value="${v}"${v === sel ? ' selected' : ''}>${t}</option>`).join('');
+}
+
+function resolveEngine(sel) {
+  const e = sel || S.ocr.engine || 'auto';
+  return e === 'auto' ? (hasLLM() ? 'vision' : 'tesseract') : e;
+}
+
+function showOcrPanel(name, imgs) {
+  pendingScan = imgs.pages;
+  const reasons = [...new Set((imgs.unsupported || []).map(u => u.reason))];
+  const max = parseInt(S.ocr.maxPages, 10) || 20;
+  $('#ocrPanel').innerHTML = `
+    <div class="ocrbox">
+      <h3>这是扫描件：没有文本层，要走 OCR</h3>
+      <div class="mut">共 ${imgs.pageCount || imgs.pages.length} 页，取出 <b>${imgs.pages.length}</b> 张可用的页面图片。
+        ${reasons.length ? `<br>另有 ${imgs.unsupported.length} 页用了浏览器解不了的压缩（${reasons.join('、')}），这些页会跳过。` : ''}
+        ${imgs.pages.length > max ? `<br>默认只识别前 ${max} 页，可以在「设置」里改。` : ''}
+      </div>
+      <div class="row">
+        <select id="ocrEngineSel">${ocrEngineOptions(S.ocr.engine)}</select>
+        <input type="text" id="ocrRange" placeholder="页码范围，如 1-10（留空＝全部）">
+        <button class="btn pri" id="btnRunOcr">开始识别</button>
+      </div>
+      <div id="ocrStat" class="mut" style="margin-top:8px"></div>
+    </div>`;
+  setProg(`扫描件已就绪，选好引擎点「开始识别」。`, true);
+  $('#btnRunOcr').onclick = () => runOcr(pendingScan, name, true);
+}
+
+// 解析 "1-10" / "1,3,5" / "3" 这样的页码范围
+function parseRange(str, total) {
+  const s = (str || '').trim();
+  if (!s) return null;
+  const set = new Set();
+  s.split(/[,，\s]+/).forEach(part => {
+    const m = part.match(/^(\d+)(?:[-~](\d+))?$/);
+    if (!m) return;
+    const a = +m[1], b = m[2] ? +m[2] : a;
+    for (let i = Math.min(a, b); i <= Math.max(a, b); i++) if (i >= 1 && i <= total) set.add(i);
+  });
+  return set.size ? [...set].sort((x, y) => x - y) : null;
+}
+
+async function runOcr(pages, name, useRange) {
+  if (!pages || !pages.length) { alert('没有可识别的页面。'); return; }
+  const sel = $('#ocrEngineSel') ? $('#ocrEngineSel').value : S.ocr.engine;
+  const engine = resolveEngine(sel);
+  if (engine === 'vision' && !hasLLM()) {
+    alert('用视觉模型识别需要先在「设置」里填 API Key。\n或者把引擎换成 Tesseract.js（本地跑，但首次要下载约 15 MB 模型）。');
+    switchTab('setup');
+    return;
+  }
+
+  let list = pages;
+  if (useRange) {
+    const want = parseRange($('#ocrRange') ? $('#ocrRange').value : '', pages.length);
+    if (want) list = want.map(n => pages[n - 1]).filter(Boolean);
+  }
+  const max = parseInt(S.ocr.maxPages, 10) || 20;
+  const capped = list.length > max;
+  if (capped) list = list.slice(0, max);
+
+  const btn = $('#btnRunOcr');
+  if (btn) btn.disabled = true;
+  const stat = $('#ocrStat');
+  const t0 = Date.now();
+
+  try {
+    const res = await window.OCR.recognizeImages(list, {
+      engine,
+      api: Object.assign({}, S.api, { shared: !S.api.key && S.api.preset === 'proxy' }),
+      model: S.ocr.model || S.api.model || '',
+      langPath: S.ocr.langPath || '',
+      maxPages: max,
+      onProgress: (pct, label) => {
+        const msg = `${name} — ${label}`;
+        if (stat) stat.innerHTML = msg;
+        setProg(`正在识别 <b>${name}</b> — ${label}`, true);
+      }
+    });
+
+    const good = res.pages.filter(p => p.text && p.text.trim());
+    const text = good.map(p => p.text).join('\n\n');
+    const secs = ((Date.now() - t0) / 1000).toFixed(1);
+
+    if (!text.trim()) {
+      setProg(`识别完成，但没拿到文字（${res.pages.length} 页都空）。
+        <br>换一个引擎试试 —— 视觉模型对倾斜、低对比度的扫描件耐受度明显更高。`, true);
+    } else {
+      $('#src').value = text.slice(0, MAX_TEXT);
+      updateSrcStat();
+      const words = (text.match(/[A-Za-zÀ-ÿ]+/g) || []).length;
+      setProg(`识别完成：<b>${good.length}/${res.pages.length}</b> 页有文字，共 <b>${words}</b> 词，用时 ${secs}s。
+        ${capped ? `<br>只识别了前 ${max} 页，更多请到「设置」调上限或分批处理。` : ''}
+        <br>OCR 难免有错，<b>扫一眼下面的文本再点解析</b>。`, true);
+    }
+
+    // 每页质量一览：哪几页没识别出来，一眼能看到
+    if (stat) {
+      stat.innerHTML = '<div class="ocrpage">' + res.pages.map(p => {
+        const cls = p.error ? 'error' : (p.quality || (p.text ? 'ok' : 'empty'));
+        const tip = p.error ? p.error : (p.text ? `${(p.text.match(/\S+/g) || []).length} 词` : '空页');
+        return `<span class="${cls}" title="${String(tip).replace(/"/g, '')}">${p.page}</span>`;
+      }).join('') + '</div><div class="hint">绿色＝识别正常，黄色＝可能识别歪了，红色＝失败或空页。</div>';
+    }
+    if (btn) btn.disabled = false;
+  } catch (err) {
+    setProg(`<b>识别失败：</b>${err && err.message ? err.message : err}
+      <br>如果是引擎下载失败，检查网络，或到「设置」里换个语言包地址。`, true);
+    if (btn) btn.disabled = false;
+  }
+}
+
+const SAMPLE = `Je m'appelle Léa, j'ai vingt-deux ans et je vis à Lyon depuis trois ans. J'étudie l'architecture à l'université, et le week-end je travaille dans un petit café près de la gare.
+
+Quand j'avais dix ans, j'habitais dans un village à côté de la montagne. Ma grand-mère habitait avec nous et je suis allée chez elle tous les dimanches jusqu'à ses quatre-vingts ans. Elle cuisinait très bien et elle m'a appris à faire le pain. Je crois que c'est là que j'ai découvert le goût des choses simples.
+
+Aujourd'hui, la vie urbaine est plus rapide, mais elle reste stimulant. Il faut que je travaille beaucoup si je veux terminer mon diplôme l'année prochaine. Bien que le loyer soit trop élevé, nous avons décidé de louer un nouvel appartement dans le quartier parce que le propriétaire a accepté de faire des travaux. Je pense déménager au mois de mars.`;
+
+$('#loadSample').onclick = () => { $('#src').value = SAMPLE; updateSrcStat(); };
+
+$('#btnAnalyze').onclick = async () => {
+  const text = $('#src').value.trim();
+  if (text.length < 80) { alert('材料太短了，至少粘贴一段完整的法语课文或讲义。'); return; }
+  $('#btnAnalyze').disabled = true; $('#btnAnalyze').textContent = '解析中…';
+  await new Promise(r => setTimeout(r, 60));
+  const v = extractVocab(text);
+  const g = extractGrammar(text);
+  S.exam = $('#exam').value;
+  S.examDate = $('#examDate').value;
+  S.rawText = text;
+  S.vocab = v;
+  S.grammar = g;
+  save();
+  $('#btnAnalyze').disabled = false; $('#btnAnalyze').textContent = '解析并生成考点图谱';
+
+  const hits = v.filter(x => x.inDict).length;
+  const noteHtml = `<div class="note" style="margin-top:12px">
+    解析完成：<b>${v.length}</b> 个候选词目，其中 <b>${hits}</b> 个命中内置词库（含中文释义与 CEFR 等级）；识别到 <b>${g.length}</b> 类语法结构。<br>
+    下一步：在这张表里勾选要背的词，或者直接点「加入最高频 50 个」。
+    ${hasLLM() ? '<br>模型已接入，释义与等级会由模型校准。' : ''}
+    ${!hasLLM() ? '<br>提示：释义为空是因为离线词库只有约 400 条核心词。到「设置」接入模型后会自动补齐中文释义与等级校准。' : ''}
+  </div>`;
+  $('#importNote').innerHTML = noteHtml;
+  $('#mapNote').innerHTML = noteHtml;
+  renderMap();
+  switchTab('map');
+};
+
+function renderMap() {
+  if (!S.vocab.length) switchTab('import');
+  const lv = ['A1', 'A2', 'B1', 'B2'];
+  const dist = lv.map(l => S.vocab.filter(v => v.level === l).length);
+  $('#mapStats').innerHTML =
+    `<div class="stat"><div class="n">${S.vocab.length}</div><div class="l">候选词目</div></div>` +
+    `<div class="stat"><div class="n">${S.vocab.reduce((a, b) => a + b.count, 0)}</div><div class="l">总出现次数</div></div>` +
+    `<div class="stat"><div class="n">${S.grammar.length}</div><div class="l">语法结构类</div></div>` +
+    `<div class="stat"><div class="n">${S.cards.length}</div><div class="l">已加入复习</div></div>`;
+
+  $('#grammarGrid').innerHTML = S.grammar.map(g => `
+    <div class="acc">
+      <div class="row"><span class="pill ${g.level === 'A1' ? 'a2' : ''}">${g.level}</span>
+        <b style="font-size:13px">${g.name}</b><span class="mut" style="margin-left:auto">×${g.count}</span></div>
+      <div class="mut" style="margin-top:5px">${g.samples.map(s => `<span class="chip">${esc(s)}</span>`).join(' ')}</div>
+    </div>`).join('') || '<div class="empty">没有识别到明显的语法结构，换一段更长的材料试试。</div>';
+
+  renderVocabTable();
+}
+
+function renderVocabTable() {
+  const lf = $('#fLevel').value, pf = $('#fPos').value, kw = $('#fKw').value.trim().toLowerCase();
+  const rows = S.vocab.filter(v =>
+    (!lf || v.level === lf) && (!pf || v.pos === pf) &&
+    (!kw || v.lemma.includes(kw) || (v.zh || '').includes(kw))
+  );
+  const posName = { n: '名词', v: '动词', adj: '形容词', adv: '副词', p: '介词', conj: '连词', det: '限定词' };
+  $('#vocabTable').innerHTML = `<thead><tr>
+      <th style="width:34px"></th><th>词目</th><th>等级</th><th>词性</th><th>中义</th><th style="width:56px">词频</th><th style="width:70px">状态</th></tr></thead><tbody>
+    ${rows.slice(0, 300).map(v => {
+      const inDeck = S.cards.some(c => c.lemma === v.lemma);
+      return `<tr>
+        <td><input type="checkbox" class="sel" data-l="${esc(v.lemma)}" ${inDeck ? 'disabled' : ''}></td>
+        <td class="fr">${esc(v.lemma)}${v.gender ? ` <span class="mut">(${v.gender})</span>` : ''}</td>
+        <td>${v.level}${v.levelGuess ? ' <span class="pill">推测</span>' : ''}</td>
+        <td>${posName[v.pos] || v.pos}</td>
+        <td class="zh">${v.zh ? esc(v.zh) : '<span class="mut">待补</span>'}</td>
+        <td class="mut">${v.count}</td>
+        <td class="mut">${inDeck ? '已加入' : ''}</td></tr>`;
+    }).join('')}</tbody>`;
+  $('#vocabTable').dataset.count = rows.length;
+}
+
+['#fLevel', '#fPos'].forEach(id => $(id).onchange = renderVocabTable);
+$('#fKw').oninput = renderVocabTable;
+
+function addToDeck(lemmas) {
+  let n = 0;
+  lemmas.forEach(l => {
+    if (S.cards.some(c => c.lemma === l)) return;
+    const v = S.vocab.find(x => x.lemma === l);
+    if (!v) return;
+    S.cards.push(initCard(v.lemma, {
+      pos: v.pos, level: v.level, zh: v.zh, gender: v.gender,
+      count: v.count, sent: v.sent[0] || ''
+    }));
+    n++;
+  });
+  save();
+  renderVocabTable();
+  return n;
+}
+$('#btnAddTop50').onclick = () => {
+  const l = S.vocab.slice(0, 50).map(v => v.lemma);
+  alert(`已加入 ${addToDeck(l)} 个新词到复习计划。`);
+};
+$('#btnAddSelected').onclick = () => {
+  const l = $$('input.sel:checked:not(:disabled)').map(i => i.dataset.l);
+  if (!l.length) { alert('先在表格里勾选要背的词。'); return; }
+  alert(`已加入 ${addToDeck(l)} 个新词到复习计划。`);
+};
+
+/* ---------------- 训练 ---------------- */
+const MODES = {
+  recognize: { name: '形 → 义', needs: 'any' },
+  listen: { name: '听 → 形', needs: 'any' },
+  use: { name: '完形填空', needs: 'sent' },
+  conj: { name: '动词变位', needs: 'verb' },
+  produce: { name: '主动输出', needs: 'any' },
+  read: { name: '受限阅读', needs: 'any' }
+};
+$$('#modeSwitch button').forEach(b => b.onclick = () => {
+  $$('#modeSwitch button').forEach(x => x.classList.remove('on'));
+  b.classList.add('on'); S.mode = b.dataset.m; save(); nextQuestion();
+});
+if (S.mode) $$('#modeSwitch button').forEach(x => x.classList.toggle('on', x.dataset.m === S.mode));
+
+function pickCard() {
+  if (!S.cards.length) return null;
+  const due = dueCards(S.cards);
+  const pool = due.length ? due : S.cards.filter(c => !c.suspended);
+  let c = pool[Math.floor(Math.random() * pool.length)];
+  if (S.mode === 'use') { const s = pool.filter(x => x.sent); if (s.length) c = s[Math.floor(Math.random() * s.length)]; else return { noSent: true }; }
+  if (S.mode === 'conj') { const v = pool.filter(x => x.pos === 'v'); if (v.length) c = v[Math.floor(Math.random() * v.length)]; else return { noVerb: true }; }
+  return c;
+}
+function distractors(card, field, n = 3) {
+  const pool = S.vocab.filter(v => v.lemma !== card.lemma && v[field]);
+  const out = [];
+  while (out.length < n && pool.length) {
+    const p = pool.splice(Math.floor(Math.random() * pool.length), 1)[0];
+    out.push(p[field]);
+  }
+  return out;
+}
+
+function nextQuestion() {
+  const area = $('#quizArea');
+  if (!S.cards.length) {
+    area.innerHTML = `<div class="empty">还没有卡片。到「考点」页勾选单词并点击「加入最高频 50 个」。</div>`;
+    $('#trainStat').textContent = '';
+    return;
+  }
+  const c = pickCard();
+  const due = dueCards(S.cards).length;
+  $('#trainStat').textContent = `${S.cards.length} 张卡 · 今日到期 ${due} 张`;
+
+  if (c && c.noSent) { area.innerHTML = `<div class="empty">这批材料里没有可用的例句上下文，先换「认 · 形义」模式。</div>`; return; }
+  if (c && c.noVerb) { area.innerHTML = `<div class="empty">复习计划里还没有动词，先加入一些动词再来练变位。</div>`; return; }
+  if (!c) { area.innerHTML = `<div class="empty">没有可用的卡片。</div>`; return; }
+
+  Q = { card: c, mode: S.mode };
+  const builders = { recognize: buildRecognize, listen: buildListen, use: buildUse, conj: buildConj, produce: buildProduce, read: buildRead };
+  area.innerHTML = builders[S.mode](c);
+  bindQuiz();
+}
+
+function speakBtn(sel, val) {
+  const b = $(sel); if (b) b.onclick = () => { if (!speak(val)) alert('当前浏览器不支持法语语音合成，建议用 Chrome 或 Safari。'); };
+}
+function bindQuiz() {
+  $$('.opt').forEach(o => o.onclick = () => answer(o.dataset.v === '1', o.dataset.a));
+  const chk = $('#btnCheck'); if (chk) chk.onclick = () => answerFree();
+  speakBtn('#btnSpeak', Q?.speakText || Q?.card?.lemma);
+  $$('.grade').forEach(b => b.onclick = () => gradeDesktop(parseInt(b.dataset.q, 10)));
+  if (Q.mode === 'read') $('#gradeRow').classList.remove('hide');   // 阅读模式直接收口
+}
+
+function gradeDesktop(q) {
+  if (!Q) return;
+  review(Q.card, q);
+  S.stats.reviews++; if (q > 0) S.stats.correct++;
+  save();
+  toast(q > 0 ? '已记录，下次复习在 ' + Q.card.interval + ' 天后' : '已重置短期熟记，明天再见');
+  nextQuestion();
+}
+
+function answer(isRight, userAnswer) {
+  const box = $('#feedback');
+  const note = Q.expect ? `参考答案：<span class="fr">${esc(Q.expect)}</span>` : '';
+  box.className = 'fb ' + (isRight ? 'ok' : 'no');
+  box.innerHTML = `${isRight ? '正确' : (Q.expect ? '不正确' : '已记录')} ${note}`;
+  if (!isRight && userAnswer) document.querySelectorAll('.opt').forEach(o => { if (o.dataset.a === userAnswer) o.classList.add('no'); });
+  document.querySelectorAll('.opt').forEach(o => { if (o.dataset.v === '1') o.classList.add('ok'); });
+  $('#gradeRow').classList.remove('hide');
+}
+function answerFree() {
+  const val = $('#freeInput').value;
+  const g = Array.isArray(Q.expect)
+    ? (Q.blanks.map((b, i) => gradeAnswer(($('#fi_' + i) || {}).value || '', b)).every(x => x.ok))
+    : gradeAnswer(val, Q.expect);
+  const detail = Array.isArray(Q.expect)
+    ? Q.blanks.map((b, i) => { const x = gradeAnswer(($('#fi_' + i) || {}).value || '', b); return `${i + 1}. ${x.msg}${x.note ? ' — ' + x.note : ''}`; }).join('<br>')
+    : (g.msg + (g.note ? ' — ' + g.note : ''));
+  $('#feedback').className = 'fb ' + (g.ok ? 'ok' : 'no');
+  $('#feedback').innerHTML = detail;
+  $('#gradeRow').classList.remove('hide');
+  Q.selfOk = g.ok;
+}
+
+function gradeRowHTML() {
+  return `<div id="gradeRow" class="hide" style="margin-top:14px">
+    <div class="mut" style="margin-bottom:6px">你自己判定一下掌握程度，系统会据此次排下一次复习：</div>
+    <div class="row">
+      <button class="btn grade" data-q="0">忘记了</button>
+      <button class="btn grade" data-q="1">很费劲</button>
+      <button class="btn grade" data-q="2">想起来了</button>
+      <button class="btn pri grade" data-q="3">很简单</button>
+    </div></div>`;
+}
+
+function buildRecognize(c) {
+  let opts;
+  if (c.zh) {
+    opts = shuffle([{ v: 1, a: c.zh }, ...distractors(c, 'zh').map(z => ({ v: 0, a: z }))]);
+  } else {
+    // 离线词库没有中义时，退化成「词形 → 同义/近义候选」不现实，改为英法歧义题：给出词性与等级线索
+    opts = shuffle([{ v: 1, a: c.lemma + '（这就是目标词）' }, ...distractors(c, 'lemma').map(z => ({ v: 0, a: z }))]);
+  }
+  Q.expect = null; Q.speakText = c.lemma;
+  return `<div class="qbox">
+    <div class="row"><span class="pill">${c.level}</span><span class="mut">${c.count || ''} 次 · 复习 ${c.reps} 次</span>
+      <button class="btn ghost" id="btnSpeak" style="margin-left:auto">🔊 朗读</button></div>
+    <div class="big fr" style="margin-top:10px">${esc(c.lemma)}</div>
+    ${c.gender ? `<div class="hint">性：${c.gender === 'm' ? '阳性' : '阴性'} — 背的时候请连冠词一起背</div>` : ''}
+    <div class="opts">${opts.map(o => `<button class="opt" data-v="${o.v}" data-a="${esc(o.a)}">${esc(o.a)}</button>`).join('')}</div>
+    <div id="feedback" class="fb hide"></div>${gradeRowHTML()}
+  </div>`;
+}
+function buildListen(c) {
+  Q.expect = c.lemma; Q.speakText = c.lemma;
+  const opts = shuffle([{ v: 1, a: c.lemma }, ...distractors(c, 'lemma').map(z => ({ v: 0, a: z }))]);
+  setTimeout(() => speak(c.lemma), 250);
+  return `<div class="qbox">
+    <div class="row"><span class="pill">听力辨形</span><span class="mut">${c.level}</span>
+      <button class="btn ghost" id="btnSpeak" style="margin-left:auto">🔊 再听一次</button></div>
+    <div style="text-align:center;margin:22px 0"><button class="btn pri" onclick="speak(${JSON.stringify(c.lemma)})" style="font-size:15px;padding:14px 26px">播放法语发音</button></div>
+    <div class="opts">${opts.map(o => `<button class="opt" data-v="${o.v}" data-a="${esc(o.a)}"><span class="fr">${esc(o.a)}</span></button>`).join('')}</div>
+    <div id="feedback" class="fb hide"></div>${gradeRowHTML()}
+  </div>`;
+}
+function buildUse(c) {
+  let s = c.sent || (S.rawText.match(new RegExp('[^.!?]*\\b' + c.lemma + '\\b[^.!?]*[.!?]')) || [null])[0] || '';
+  const re = new RegExp('\\b(' + c.lemma.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')(\\w*)', 'i');
+  const hidden = s.replace(re, '______');
+  if (hidden === s) return `<div class="empty">例句里没找到这个词，切换到其它模式试试。</div>`;
+  Q.expect = c.lemma; Q.blanks = [c.lemma]; Q.speakText = s;
+  return `<div class="qbox">
+    <div class="row"><span class="pill">完形</span><span class="mut">在材料的真实语境里恢复这个词</span>
+      <button class="btn ghost" id="btnSpeak" style="margin-left:auto">🔊 朗读整句</button></div>
+    <div class="sent" style="margin-top:14px">${esc(hidden)}</div>
+    <div class="hint">提示：${esc(c.zh || '—')} · 长度 ${c.lemma.length}</div>
+    <div class="row" style="margin-top:14px">
+      <input type="text" id="fi_0" class="inline" placeholder="填词" autocomplete="off" autocapitalize="off" spellcheck="false">
+      <button class="btn pri" id="btnCheck">检查</button>
+    </div>
+    <div id="feedback" class="fb hide"></div>${gradeRowHTML()}
+  </div>`;
+}
+function buildConj(c) {
+  const t = TENSES[Math.floor(Math.random() * TENSES.length)];
+  const i = Math.floor(Math.random() * 6);
+  const forms = conjugate(c.lemma, t.id);
+  Q.expect = forms[i]; Q.speakText = Q.expect;
+  return `<div class="qbox">
+    <div class="row"><span class="pill ${t.id === 'subj' ? 'w' : ''}">${t.name}</span>
+      <span class="mut">${PRON[i]}</span>
+      <button class="btn ghost" id="btnSpeak" style="margin-left:auto">🔊 朗读</button></div>
+    <div style="margin-top:14px;font-size:15px"><span class="mut">原形</span> <span class="fr">${esc(c.lemma)}</span>
+      &nbsp;→&nbsp; <span class="mut">${PRON[i]}</span> <span style="color:var(--brand-soft)">________</span></div>
+    <div class="row" style="margin-top:14px"><input type="text" id="freeInput" class="inline" style="min-width:200px" placeholder="écrire ici" autocomplete="off" autocapitalize="off" spellcheck="false"><button class="btn pri" id="btnCheck">检查</button></div>
+    <div class="hint">${t.id === 'pc' ? '别忘了助动词 + 过去分词两部分。' : ''}${t.id === 'subj' ? '虚拟式由 nous 形式去 -ons 加尾缀构成（ils 除外）。' : ''}</div>
+    <div id="feedback" class="fb hide"></div>${gradeRowHTML()}
+  </div>`;
+}
+function buildProduce(c) {
+  Q.expect = c.lemma; Q.speakText = c.lemma;
+  const promptZh = c.zh || `用 ${c.lemma} 造句`;
+  return `<div class="qbox">
+    <div class="row"><span class="pill w">主动输出</span><span class="mut">写出来才算真的会</span>
+      <button class="btn ghost" id="btnSpeak" style="margin-left:auto">🔊 朗读目标词</button></div>
+    <div style="margin-top:12px;font-size:15px">用 <span class="fr">${esc(c.lemma)}</span> 写一个完整的法语句子</div>
+    <div class="hint">中文提示：${esc(promptZh)}${c.gender ? ` · 注意这是${c.gender === 'm' ? '阳' : '阴'}性名词，冠词和形容词要配合` : ''}</div>
+    <textarea id="freeInput" style="min-height:90px;margin-top:10px" placeholder="Écris ta phrase ici..."></textarea>
+    <div class="row" style="margin-top:10px"><button class="btn pri" id="btnCheck">检查</button><button class="btn" id="btnLint">只看易错点</button></div>
+    <div id="feedback" class="fb hide"></div>${gradeRowHTML()}
+  </div>`;
+}
+function buildRead(c) {
+  const p = genPassage(S.exam || 'B1', S.vocab.slice(0, 40), S.grammar, 3);
+  Q.expect = null; Q.speakText = p.text;
+  return `<div class="qbox">
+    <div class="row"><span class="pill a2">受限输入 · ${esc(S.exam)}</span>
+      <button class="btn ghost" id="btnSpeak" style="margin-left:auto">🔊 朗读全文</button></div>
+    <div class="sent" style="margin-top:14px">${esc(p.text)}</div>
+    <div class="note" style="margin-top:14px">${esc(p.note)}</div>
+    <div class="hint">读法：先不查词读完一遍，看能抓住多少；再放音频跟着读一遍；遇到生词再去「考点」页查。</div>
+    <div id="feedback" class="fb hide"></div>${gradeRowHTML()}
+  </div>`;
+}
+
+$('#btnCheck') && null;
+document.addEventListener('click', e => {
+  if (e.target && e.target.id === 'btnLint') {
+    const t = $('#freeInput').value.trim();
+    if (!t) { $('#feedback').className = 'fb no'; $('#feedback').textContent = '先写点东西。'; return; }
+    const issues = detectSLA(t);
+    const used = normAns(t).includes(normAns(Q.expect));
+    $('#feedback').className = 'fb ' + (used ? 'ok' : 'no');
+    $('#feedback').innerHTML = `${used ? '目标词已正确使用 ✔' : '没有检测到目标词：' + esc(Q.expect)}` +
+      (issues.length ? '<br><br>' + issues.map(i => `<b>${i.name}</b>：${i.samples.map(esc).join('；')}`).join('<br>') : '<br><br>没有发现常见易错点。');
+  }
+});
+
+function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
+
+let toastT;
+function toast(msg) {
+  let el = $('#toast');
+  if (!el) { el = document.createElement('div'); el.id = 'toast'; document.body.appendChild(el); }
+  el.textContent = msg;
+  el.style.cssText = 'position:absolute;left:50%;transform:translateX(-50%);top:64px;background:#1F1E1C;color:#fff;padding:9px 16px;border-radius:20px;font-size:12.5px;z-index:99;opacity:0;transition:opacity .25s';
+  requestAnimationFrame(() => el.style.opacity = .96);
+  clearTimeout(toastT); toastT = setTimeout(() => el.style.opacity = 0, 2600);
+}
+
+/* ---------------- 排课 ---------------- */
+function renderPlan() {
+  const due = dueCards(S.cards);
+  const learned = S.cards.filter(c => c.reps > 0).length;
+  const days = S.examDate ? Math.max(0, daysUntil(S.examDate)) : 0;
+  const perDay = days > 0 && S.cards.length ? Math.ceil(S.cards.length / days) : 0;
+  $('#planStats').innerHTML =
+    `<div class="stat"><div class="n">${due.length}</div><div class="l">今日到期</div></div>` +
+    `<div class="stat"><div class="n">${learned}</div><div class="l">已见过</div></div>` +
+    `<div class="stat"><div class="n">${days || '—'}</div><div class="l">${days ? '天后考试' : '未设考试日期'}</div></div>` +
+    `<div class="stat"><div class="n">${perDay || '—'}</div><div class="l">${days ? '每天需新学' : '设日期后计算'}</div></div>`;
+
+  $('#dueList').innerHTML = due.length ? due.slice(0, 60).map(c => `
+    <div class="acc"><div class="row">
+      <span class="fr" style="font-size:15px;min-width:120px">${esc(c.lemma)}</span>
+      <span class="zh">${esc(c.zh || '')}</span>
+      <span class="pill">${c.level}</span>
+      <span class="mut" style="margin-left:auto">${c.reps ? `第 ${c.reps} 次 · 间隔 ${c.interval} 天` : '首次学习'}</span>
+      <button class="btn ghost" onclick="speak(${JSON.stringify(c.lemma)})">🔊</button>
+    </div></div>`).join('') : '<div class="empty">今天没有到期的卡片。要么去「考点」加词，要么休息。</div>';
+
+  const hist = {};
+  for (let i = 0; i < 14; i++) hist[addDays(i)] = 0;
+  S.cards.forEach(c => { if (hist[c.due] !== undefined) hist[c.due]++; });
+  const vals = Object.values(hist);
+  const max = Math.max(1, ...vals);
+  $('#forecast').innerHTML = Object.entries(hist).map(([d, n]) => {
+    const h = Math.round(60 * n / max);
+    return `<div style="text-align:center"><div style="height:60px;display:flex;align-items:flex-end;justify-content:center">
+      <div style="width:26px;height:${h}px;background:var(--brand);border-radius:3px 3px 0 0"></div></div>
+      <div class="mut" style="margin-top:4px">${n}</div><div class="mut" style="font-size:11px">${d.slice(5)}</div></div>`;
+  }).join('');
+}
+
+$('#examDate').onchange = () => { S.examDate = $('#examDate').value; save(); };
+$('#exam').onchange = () => { S.exam = $('#exam').value; save(); };
+
+$('#btnExportAnki').onclick = () => {
+  if (!S.cards.length) { alert('先加一些词。'); return; }
+  const rows = S.cards.map(c => [
+    `${c.lemma}${c.gender ? ' (' + c.gender + ')' : ''}`,
+    c.zh || '', c.sent ? c.sent.replace(new RegExp(c.lemma, 'gi'), '[...]') : '', `allez_${c.level}_${c.pos}`
+  ].map(v => '"' + String(v).replace(/"/g, '""') + '"').join(','));
+  const blob = new Blob(['\uFEFF' + rows.join('\n')], { type: 'text/csv;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = 'allez-anki.csv'; a.click();
+};
+$('#btnReset2').onclick = $('#btnReset').onclick = () => {
+  if (!confirm('确认清空本机全部学习数据？此操作不可撤销。')) return;
+  S = DEFAULT_STATE(); save(); location.reload();
+};
+
+/* ---------------- 验收 ---------------- */
+function lvOrder(l) { return ({ A1: 1, A2: 2, B1: 3, B2: 4, C1: 5 })[l] || 3; }
+
+function renderReport() {
+  const total = S.cards.length;
+  const known = S.cards.filter(c => c.reps > 0 && (c.history.at(-1)?.q || 0) > 0).length;
+  const weak = S.cards.filter(c => c.lapses > 0);
+  const acc = S.stats.reviews ? Math.round(100 * S.stats.correct / S.stats.reviews) : 0;
+  $('#repStats').innerHTML =
+    `<div class="stat"><div class="n">${total}</div><div class="l">在学词目</div></div>` +
+    `<div class="stat"><div class="n">${known}</div><div class="l">已初步掌握</div></div>` +
+    `<div class="stat"><div class="n">${acc}%</div><div class="l">自评正确率</div></div>` +
+    `<div class="stat"><div class="n">${weak.length}</div><div class="l">反复忘词</div></div>`;
+
+  radar(['词汇 A1-A2', '词汇 B1-B2', '动词变位', '语法结构', '主动输出', '易错点'], [
+    masteryBy(l => lvOrder(l) <= 2 && l !== 'v'),
+    masteryBy(l => lvOrder(l) >= 3),
+    conjMastery(),
+    grammarMastery(),
+    Math.min(100, acc),
+    slaScore()
+  ]);
+
+  const target = S.exam || 'B1';
+  const tLv = lvOrder(target);
+  const core = Object.keys(DICT).filter(w => DICT[w].level && lvOrder(DICT[w].level) <= tLv);
+  const hit = core.filter(w => S.cards.some(c => c.lemma === w));
+  const pct = core.length ? Math.round(100 * hit.length / core.length) : 0;
+  $('#coverage').innerHTML = `
+    <div class="row" style="margin-bottom:8px"><b style="font-size:20px">${pct}%</b><span class="mut">核心词汇覆盖（${hit.length} / ${core.length}）</span></div>
+    <div class="bar"><i style="width:${pct}%"></i></div>
+    <div class="hint" style="margin-top:10px">缺口最大的 ${target} 及以下常用词：</div>
+    <div style="margin-top:6px">${core.filter(w => !S.cards.some(c => c.lemma === w)).slice(0, 40).map(w => `<span class="chip fr">${esc(w)}${DICT[w].gender ? ' (' + DICT[w].gender + ')' : ''} <span class="mut">${esc(DICT[w].zh || '')}</span></span>`).join('')}</div>`;
+
+  $('#weakList').innerHTML = S.cards.filter(c => c.lapses > 0 || (c.history.at(-1)?.q === 0))
+    .sort((a, b) => b.lapses - a.lapses).slice(0, 30)
+    .map(c => `<span class="chip fr">${esc(c.lemma)} <span class="mut">忘 ${c.lapses} 次 · ${esc(c.zh || '')}</span></span>`).join('')
+    || '<div class="empty">还没有明显的弱项。多做几轮再回来。</div>';
+}
+function masteryBy(fn) {
+  const pool = S.cards.filter(c => { const d = DICT[c.lemma]; return fn(c.level || (d && d.level) || 'B1'); });
+  if (!pool.length) return 0;
+  const good = pool.filter(c => c.reps > 0 && (c.history.at(-1)?.q || 0) > 0).length;
+  return Math.round(100 * good / pool.length);
+}
+function conjMastery() {
+  const v = S.cards.filter(c => c.pos === 'v');
+  if (!v.length) return 0;
+  return Math.round(100 * v.filter(c => c.reps > 1).length / v.length);
+}
+function grammarMastery() {
+  if (!S.grammar.length) return 0;
+  return Math.min(100, Math.round(100 * Math.min(1, S.grammar.length / 8)));
+}
+function slaScore() {
+  if (!S.rawText) return 0;
+  const issues = detectSLA(S.rawText).reduce((a, b) => a + b.count, 0);
+  return Math.max(0, 100 - issues * 6);
+}
+
+function radar(labels, values) {
+  const n = labels.length, cx = 170, cy = 165, R = 115;
+  const pt = (i, r) => {
+    const a = -Math.PI / 2 + i * 2 * Math.PI / n;
+    return [cx + r * Math.cos(a), cy + r * Math.sin(a)];
+  };
+  const rings = [0.25, 0.5, 0.75, 1].map(k => `<polygon points="${labels.map((_, i) => pt(i, R * k).map(v => v.toFixed(1)).join(',')).join(' ')}" fill="none" stroke="#E3E1DB" stroke-width="1"/>`).join('');
+  const poly = values.map((v, i) => pt(i, R * Math.max(0.04, v / 100)).map(x => x.toFixed(1)).join(',')).join(' ');
+  const lbl = labels.map((l, i) => {
+    const [x, y] = pt(i, R + 24);
+    const anchor = Math.abs(x - cx) < 8 ? 'middle' : (x > cx ? 'start' : 'end');
+    return `<text x="${x.toFixed(0)}" y="${y.toFixed(0)}" text-anchor="${anchor}" font-size="12" fill="#5F5E5A">${esc(l)}</text>`;
+  }).join('');
+  const vals = values.map((v, i) => {
+    const [x, y] = pt(i, R * Math.max(0.04, v / 100));
+    return `<circle cx="${x.toFixed(0)}" cy="${y.toFixed(0)}" r="3" fill="#1D4ED8"/>`;
+  }).join('');
+  $('#radar').innerHTML = `<svg width="360" height="330" viewBox="0 0 340 330" role="img" aria-label="能力雷达图">${rings}
+    ${labels.map((_, i) => `<line x1="${cx}" y1="${cy}" x2="${pt(i, R)[0].toFixed(1)}" y2="${pt(i, R)[1].toFixed(1)}" stroke="#E3E1DB" stroke-width="1"/>`).join('')}
+    <polygon points="${poly}" fill="#1D4ED8" fill-opacity="0.18" stroke="#1D4ED8" stroke-width="2"/>
+    ${vals}${lbl}</svg>`;
+}
+
+/* ---------------- 易错点 ---------------- */
+function renderSLA() {
+  const found = S.rawText ? detectSLA(S.rawText) : [];
+  $('#slaFound').innerHTML = found.length ? found.map(f => `
+    <div class="acc"><div class="row"><b style="font-size:13px">${f.name}</b>
+      <span class="pill ${f.level === 'A1' || f.level === 'A2' ? 'a2' : 'w'}">${f.level}</span>
+      <span class="mut" style="margin-left:auto">疑似 ${f.count} 处</span></div>
+      <div class="mut" style="margin-top:6px">${f.samples.map(s => `<span class="chip">${esc(s)}</span>`).join(' ')}</div>
+      <div class="hint">${esc(f.tip || '')}</div></div>`).join('')
+    : '<div class="empty">导入材料后这里会列出在你自己的文本里检测到的问题。</div>';
+
+  $('#slaLib').innerHTML = SLA_LIB.map(s => `
+    <div class="acc"><div class="row"><b style="font-size:13px">${s.name}</b>
+      <span class="pill ${s.level === 'A1' || s.level === 'A2' ? 'a2' : 'w'}">${s.level}</span></div>
+      <div class="grid g2" style="margin-top:6px">
+        <div><div class="mut">常见错法</div><div class="fr" style="color:var(--bad)">${esc(s.wrong)}</div></div>
+        <div><div class="mut">正确写法</div><div class="fr" style="color:var(--accent)">${esc(s.right)}</div></div>
+      </div>
+      <div class="hint"><b>为什么中国人会错：</b>${esc(s.why)}</div>
+      <div class="hint"><b>破解办法：</b>${esc(s.tip)}</div></div>`).join('');
+}
+
+/* ---------------- 远程模型（可选） ---------------- */
+async function callLLM(prompt, maxTokens = 1200) {
+  const a = S.api;
+  if (!hasLLM()) throw new Error('未配置 API Key');
+  const shared = !a.key && a.preset === 'proxy';   // 共享代理：由服务端带 Key，这里不能塞空的 authorization
+  if (a.provider === 'claude') {
+    const base = (a.base || 'https://api.anthropic.com').replace(/\/$/, '');
+    const r = await fetch(base + '/v1/messages', {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json', 'x-api-key': a.key,
+        'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: a.model || 'claude-opus-4-6', max_tokens: maxTokens,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    if (!r.ok) throw new Error('HTTP ' + r.status + ' ' + (await r.text()).slice(0, 200));
+    const j = await r.json();
+    return (j.content || []).filter(c => c.type === 'text').map(c => c.text).join('');
+  }
+  const base = (a.base || 'https://api.openai.com/v1').replace(/\/$/, '');
+  let auth = { 'content-type': 'application/json' };
+  if (!shared) auth.authorization = 'Bearer ' + a.key;
+  const r = await fetch(base + '/chat/completions', {
+    method: 'POST',
+    headers: auth,
+    body: JSON.stringify({ model: a.model || 'gpt-4o', max_tokens: maxTokens, messages: [{ role: 'user', content: prompt }] })
+  });
+  if (!r.ok) throw new Error('HTTP ' + r.status + ' ' + (await r.text()).slice(0, 200));
+  const j = await r.json();
+  return j.choices?.[0]?.message?.content || '';
+}
+
+// 从预设推出底层的 provider（实际发请求只用 'claude' / 'openai' 两种协议）
+function currentProvider() {
+  const k = $('#apiPreset') ? $('#apiPreset').value : 'custom';
+  return (API_PRESETS[k] || API_PRESETS.custom).provider;
+}
+function readApiForm() {
+  return {
+    provider: currentProvider(), base: $('#apiBase').value.trim(),
+    key: $('#apiKey').value.trim(), model: $('#apiModel').value.trim()
+  };
+}
+$('#btnSaveApi').onclick = () => {
+  S.api = readApiForm();
+  S.api.preset = $('#apiPreset') ? $('#apiPreset').value : 'custom';
+  // 预设顺手填的视觉模型一并存下来，免得用户还得再去 OCR 那栏点一次保存
+  if ($('#ocrModel') && $('#ocrModel').value.trim()) S.ocr.model = $('#ocrModel').value.trim();
+  save(); toast('已保存到本机浏览器');
+};
+$('#btnTestApi').onclick = async () => {
+  const btn = $('#btnTestApi'); btn.disabled = true; $('#apiStat').textContent = '连接中…';
+  const backup = S.api;
+  S.api = readApiForm();
+  try {
+    const t = await callLLM('Réponds uniquement: OK', 10);
+    $('#apiStat').textContent = '连接成功：' + t.slice(0, 20);
+  } catch (e) {
+    $('#apiStat').textContent = '失败：' + e.message;
+    S.api = backup;
+  }
+  btn.disabled = false;
+};
+
+/* ---------------- OCR 设置 ---------------- */
+if (S.ocr) {
+  if ($('#ocrEngine')) $('#ocrEngine').value = S.ocr.engine || 'auto';
+  if ($('#ocrModel')) $('#ocrModel').value = S.ocr.model || '';
+  if ($('#ocrLangPath')) $('#ocrLangPath').value = S.ocr.langPath || '';
+  if ($('#ocrMaxPages')) $('#ocrMaxPages').value = String(S.ocr.maxPages || 20);
+}
+$('#btnSaveOcr').onclick = () => {
+  S.ocr = {
+    engine: $('#ocrEngine').value,
+    model: $('#ocrModel').value.trim(),
+    langPath: $('#ocrLangPath').value.trim(),
+    maxPages: Math.max(1, Math.min(200, parseInt($('#ocrMaxPages').value, 10) || 20))
+  };
+  save();
+  const s = $('#ocrSaveStat'); if (s) s.textContent = '已保存到本机浏览器';
+  setTimeout(() => { if (s) s.textContent = ''; }, 2500);
+};
+$('#btnGuide2').onclick = () => { if (window.Guide) window.Guide.open(); };
+
+/* ---------------- 备份 / 恢复 ----------------
+   localStorage 会被清缓存、换浏览器、换设备带走，而且找不回来。
+   导出一份 JSON 是唯一靠谱的兜底。 */
+$('#btnExportAll').onclick = () => {
+  try {
+    const payload = {
+      format: 'allez-backup', version: 1, exportedAt: new Date().toISOString(),
+      // 明文导出给别人看没问题，但别指望它是隐私的：里面有你的 API Key。
+      state: S
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'allez-backup-' + new Date().toISOString().slice(0, 10) + '.json';
+    document.body.appendChild(a); a.click();
+    setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+    const st = $('#backupStat');
+    if (st) { st.textContent = `已导出 ${S.vocab.length} 词 / ${S.cards.length} 張卡片`; setTimeout(() => st.textContent = '', 4000); }
+  } catch (e) {
+    alert('导出失败：' + e.message);
+  }
+};
+$('#btnImportAll').onclick = () => $('#backupInput').click();
+$('#backupInput').onchange = async e => {
+  const f = e.target.files && e.target.files[0];
+  e.target.value = '';                       // 允许连续选同一个文件
+  if (!f) return;
+  const st = $('#backupStat');
+  try {
+    const payload = JSON.parse(await f.text());
+    if (payload.format !== 'allez-backup' || !payload.state) throw new Error('不是 Allez 的备份文件');
+    const incoming = payload.state;
+    if (typeof incoming.vocab !== 'object' || !('cards' in incoming)) throw new Error('备份文件结构不对');
+
+    const detail = `${incoming.vocab.length} 词 / ${incoming.cards.length} 張卡片` +
+      (payload.exportedAt ? `（备份于 ${payload.exportedAt.slice(0, 10)}）` : '');
+    const mine = S.vocab.length || S.cards.length;
+    const merge = mine && confirm(
+      `备份里有 ${detail}。\n\n` +
+      `【确定】合并保留两边（词汇取并集，卡片按词条去重）\n` +
+      `【取消】覆盖当前数据（现在有 ${S.vocab.length} 词 / ${S.cards.length} 張卡片）`
+    );
+
+    if (merge) {
+      // 同一个词两边各有一份时，保留到期日更远的那份（= 复习进度更靠后的那份）
+      const key = v => (v.lemma || '') + '|' + (v.surface || v.word || '');
+      const mergeList = (mine, theirs) => {
+        const map = new Map();
+        [...theirs, ...mine].forEach(v => {
+          const k = key(v);
+          const cur = map.get(k);
+          map.set(k, cur && String(cur.due || '') > String(v.due || '') ? cur : v);
+        });
+        return [...map.values()];
+      };
+      S.vocab = mergeList(S.vocab, incoming.vocab || []);
+      S.cards = mergeList(S.cards, incoming.cards || []);
+      S.stats.reviews = Math.max(S.stats.reviews, incoming.stats?.reviews || 0);
+      S.stats.correct = Math.max(S.stats.correct, incoming.stats?.correct || 0);
+      S.done = Object.assign({}, incoming.done || {}, S.done || {});
+    } else {
+      S = Object.assign(DEFAULT_STATE(), incoming);
+    }
+    S.ocr = Object.assign({ engine: 'auto', model: '', langPath: '', maxPages: 20 }, S.ocr || {});
+    save();
+    if (st) { st.textContent = merge ? `已合并 ${detail}` : `已恢复 ${detail}，刷新后生效`; }
+    setTimeout(() => location.reload(), 900);
+  } catch (err) {
+    alert('恢复失败：' + (err.message || err));
+  }
+};
+
+/* 启动 */
+switchTab(S.rawText && S.cards.length ? 'train' : (S.rawText ? 'map' : 'import'));
+
+;
+/* =========================================================================
+   guide.js — 首次使用引导 + 常驻使用指南
+   -------------------------------------------------------------------------
+   第一次打开会弹一个 5 步引导（localStorage 记住，只在真的没用过时弹）。
+   之后任何时候点顶部「指南」都能再看。
+   ========================================================================= */
+(function () {
+  'use strict';
+  const $ = s => document.querySelector(s);
+  const ONBOARD_KEY = 'allez.onboarded.v1';
+
+  /* ---------------- 首次引导的 5 步 ---------------- */
+  const STEPS = [
+    {
+      t: '这不是又一个背单词 App',
+      h: '通用语言学习工具的问题是不认你的考试',
+      b: '它只做一件事：把你这学期的材料拆成考点，按遗忘曲线排出每天该做的事，直到你考过。' +
+        '全程在你自己的浏览器里跑，材料不上传任何服务器。',
+      tip: '先花 60 秒走完这 5 步。'
+    },
+    {
+      t: '第 1 步 · 倒入你的材料',
+      h: '材料越贴近真实考试，抽出来的考点越准',
+      b: '把讲义、教材课文、词汇表、历年真题粘贴进来，或者直接把 PDF 拖进来 —— 扫描件也能处理（会走 OCR）。' +
+        '如果一时拿不准放什么，先点「载入示例课文」把整条流程跑一遍。',
+      tip: '一份 2–3 页的课文就够跑通。别一上来塞整本书。'
+    },
+    {
+      t: '第 2 步 · 挑出要背的',
+      h: '别全选，先 50 个',
+      b: '解析完会给出一张考点表，标了词频、CEFR 等级、以及这个词在你材料里的原句。' +
+        '点「加入最高频 50 个」就够了 —— 背完再加下一批，比一次塞 500 个然后放弃强得多。',
+      tip: '带原句的例句比孤立单词好记，因为那句话是你自己的语境。'
+    },
+    {
+      t: '第 3 步 · 每天 20 分钟',
+      h: '六种模式轮着来，别只刷一种',
+      b: '认·形义、认·听力、用·完形、用·变位、生·输出、读·受限输入。' +
+        '间隔重复算法会决定每张卡下一次什么时候再问你 —— 到「排课」页看今天到期哪些。',
+      tip: '「用·变位」是最值钱的一个，法语丢分大头在动词形态。'
+    },
+    {
+      t: '第 4 步 · 看自己还差多少',
+      h: '验收 + 易错点',
+      b: '「验收」页给能力雷达和考纲覆盖度；「易错点」页列的是中文母语者系统性会栽的地方 —— ' +
+        '阴阳性、性数配合、虚拟式、代词位置、部分冠词。这才是这个工具真正针对性的部分。',
+      tip: '最后去「设置」填一个 API Key：中文释义和受限阅读会立刻好一个档次。不填也能用。'
+    }
+  ];
+
+  function renderModal(step) {
+    const s = STEPS[step];
+    return `
+      <div class="gstep">${step + 1} / ${STEPS.length}</div>
+      <h3 class="gtitle">${s.t}</h3>
+      <div class="ghead">${s.h}</div>
+      <p class="gbody">${s.b}</p>
+      <div class="gtip">${s.tip}</div>
+      <div class="gdots">${STEPS.map((_, i) => `<i class="${i === step ? 'on' : ''}"></i>`).join('')}</div>`;
+  }
+
+  let cur = 0, backdrop = null;
+
+  function close() {
+    if (backdrop) backdrop.remove();
+    backdrop = null;
+    try { localStorage.setItem(ONBOARD_KEY, '1'); } catch (e) { /* 隐私模式 */ }
+  }
+
+  function openOnboarding(force) {
+    if (!force) {
+      try { if (localStorage.getItem(ONBOARD_KEY)) return; } catch (e) { /* 读不到就当没看过 */ }
+    }
+    if (backdrop) return;
+    cur = 0;
+    backdrop = document.createElement('div');
+    backdrop.className = 'modal-back';
+    backdrop.innerHTML = `
+      <div class="modal">
+        <div class="modal-body" id="obBody"></div>
+        <div class="modal-foot">
+          <button class="btn ghost" id="obSkip">跳过</button>
+          <span style="flex:1"></span>
+          <button class="btn" id="obPrev">上一步</button>
+          <button class="btn pri" id="obNext">下一步</button>
+        </div>
+      </div>`;
+    document.body.appendChild(backdrop);
+
+    const body = backdrop.querySelector('#obBody');
+    const prev = backdrop.querySelector('#obPrev');
+    const next = backdrop.querySelector('#obNext');
+    const sync = () => {
+      body.innerHTML = renderModal(cur);
+      prev.disabled = cur === 0;
+      next.textContent = cur === STEPS.length - 1 ? '开始用' : '下一步';
+    };
+    sync();
+    prev.onclick = () => { if (cur > 0) { cur--; sync(); } };
+    next.onclick = () => {
+      if (cur === STEPS.length - 1) { close(); if (typeof switchTab === 'function') switchTab('import'); }
+      else { cur++; sync(); }
+    };
+    backdrop.querySelector('#obSkip').onclick = close;
+    backdrop.onclick = e => { if (e.target === backdrop) close(); };
+  }
+
+  /* ---------------- 常驻指南页 ---------------- */
+  const GUIDE_HTML = `
+  <div class="card">
+    <h2>60 秒上手</h2>
+    <p class="sub">按顺序走一遍这四步，之后每天只需要打开「排课」看今天到期什么。</p>
+    <ol class="gsteps">
+      <li><b>导入</b> —— 粘贴法语原文，或把 PDF／图片拖进来。选目标等级和考试日期。</li>
+      <li><b>考点</b> —— 点「解析」，勾掉已经会的，加入最高频的 50 个。</li>
+      <li><b>训练</b> —— 六种模式轮着刷。到期没到的卡片不会烦你，到期的才会。</li>
+      <li><b>验收</b> —— 看雷达图和考纲覆盖度，缺哪块补哪块。</li>
+    </ol>
+    <div class="row" style="margin-top:14px">
+      <button class="btn pri" id="gStart">载入示例课文，直接体验</button>
+      <button class="btn" id="gReplay">重看首次引导</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>六种练习模式各自练什么</h2>
+    <p class="sub">别只刷第一种。认得出 ≠ 用得出，这是两回事。</p>
+    <div class="gmode"><b>认 · 形义</b><span>法语词 → 选中文。最基础，用来建立第一次接触。</span></div>
+    <div class="gmode"><b>认 · 听力</b><span>听音选形。用浏览器自带法语合成，正式版建议换 Azure 神经语音。</span></div>
+    <div class="gmode"><b>用 · 完形</b><span>从你自己的材料里挖空。语境是你熟悉的，所以记得住。</span></div>
+    <div class="gmode"><b>用 · 变位</b><span>动词变位填空。法语丢分大头，值得单独练。</span></div>
+    <div class="gmode"><b>生 · 输出</b><span>给中文让你写法语。离线版只做规则检查，接模型后是 CEFR 级批改。</span></div>
+    <div class="gmode"><b>读 · 受限输入</b><span>只用「你已会的词 + 今天这一个点」生成的短文，配音频。</span></div>
+  </div>
+
+  <div class="card">
+    <h2>材料怎么选（这一条决定效果上限）</h2>
+    <p class="sub">系统的产出质量直接等于你喂进去的东西的质量。</p>
+    <div class="gmode ok"><b>最好</b><span>近三年真题阅读、你这学期的讲义、老师发的词汇表</span></div>
+    <div class="gmode ok"><b>不错</b><span>教材课文（ACLE / 北外《法语》/ Alter Ego 都行）、备考书范文</span></div>
+    <div class="gmode warn"><b>一般</b><span>泛读材料、新闻。词汇面太散，抽出来的考点跟考试重合度低</span></div>
+    <div class="gmode bad"><b>别用</b><span>中法对照的双语对照表。法语部分会被中文打断，断句全乱</span></div>
+    <div class="hint">建议：3–5 份同级别材料一起导入，重合出现的词就是高频考点。</div>
+  </div>
+
+  <div class="card">
+    <h2>扫描件和图片怎么办（OCR）</h2>
+    <p class="sub">拖进来的 PDF 如果没有文本层，会自动弹出 OCR 面板。</p>
+    <div class="note" style="margin-bottom:12px">
+      扫描件的识别质量取决于原图。拍得正、光线匀、300 dpi 左右最好；倾斜、手指遮挡、摩尔纹都会让识别率断崖式下跌。
+    </div>
+    <div class="gmode"><b>视觉大模型</b><span>质量最好，尤其擅长法语重音和省音（é / è / ê / ç / œ）。需要 API Key，图片会发给你配置的接口。</span></div>
+    <div class="gmode"><b>Tesseract.js</b><span>在你浏览器本地跑，图片不出本机。首次需要从 CDN 下载约 15 MB 模型，之后会缓存。识别率低于视觉模型，重音容易丢。</span></div>
+    <div class="gmode warn"><b>JPEG 2000 不支持</b><span>少数扫描仪输出 JPXDecode 压缩，浏览器解不了。遇到会明确提示你，用系统预览重新导出一份 JPEG 即可。</span></div>
+    <div class="hint">识别完会自动做一遍法语后处理：合并被换行切断的单词、统一引号、展开连字符。但丢掉的重音补不回来 —— 所以尽量用视觉模型。</div>
+  </div>
+
+  <div class="card">
+    <h2>接了模型之后会强在哪</h2>
+    <p class="sub">不接也能用，离线规则引擎负责抽词、分级、变位和易错点检测。</p>
+    <div class="gmode"><b>中文释义</b><span>贴合你材料里那个语境的义项，而不是词典冷冰冰的第一条</span></div>
+    <div class="gmode"><b>受限文本生成</b><span>真的控制在「已学词汇 + i+1」范围内的法语短文。这是词汇自然复现的关键，也是最难被抄的部分</span></div>
+    <div class="gmode"><b>写作批改</b><span>对你主动输出的法语做 CEFR 级批改：语法、性数配合、语体</span></div>
+    <div class="gmode"><b>OCR</b><span>扫描件转文字，重音还原远好于本地引擎</span></div>
+    <div class="hint">Key 只存在你的浏览器 localStorage，请求直接打到你填的接口地址，不经过任何中转。</div>
+  </div>
+
+  <div class="card">
+    <h2>常见问题</h2>
+    <details><summary>数据存在哪？换设备还在吗？</summary>
+      <p class="mut" style="margin-top:8px">存在当前浏览器的 localStorage 里，不同设备、不同浏览器之间不互通，清缓存会丢。<b>到「设置」→「数据备份」导出一份 JSON</b>，换设备时再导入就行；别指望云服务帮你兜底，这里没有云。「排课」页另有「导出 Anki CSV」，想在 Anki 里一起背可以用它。</p></details>
+    <details><summary>为什么很多词没有中文释义？</summary>
+      <p class="mut" style="margin-top:8px">内置离线词库只有约 400 条核心词。接上 API Key 之后会自动补齐，并校准 CEFR 等级。</p></details>
+    <details><summary>PDF 有大小限制吗？</summary>
+      <p class="mut" style="margin-top:8px">100 MB 硬拒（再大浏览器会卡死），25 MB / 200 页起会提示你等一等。提取出的正文截到 40 万字符，超过这个量对背单词没意义。</p></details>
+    <details><summary>扫描件 OCR 结果很差怎么办？</summary>
+      <p class="mut" style="margin-top:8px">先看是不是 JPXDecode（会明确提示）。不是的话换个引擎试试，视觉模型对重音的处理明显更好。也可以只 OCR 前几页先验证效果。</p></details>
+    <details><summary>怎么把生词带回 Anki？</summary>
+      <p class="mut" style="margin-top:8px">「排课」页有「导出 Anki CSV」，导入时字段选「正面 / 背面」即可。</p></details>
+  </div>
+
+  <div class="card">
+    <h2>现在还做不到的事</h2>
+    <p class="sub">与其让你自己撞墙，不如先说清楚。</p>
+    <div class="gmode bad"><b>主动输出只有规则检查</b><span>没接模型时，只能查音符缺失、英文混入、冠词配合这几类，做不了真正的语法批改</span></div>
+    <div class="gmode bad"><b>受限阅读是模板生成</b><span>语法保证正确，但语义是机械的，读起来不像人写的</span></div>
+    <div class="gmode bad"><b>用的是 SM-2</b><span>Anki 的 FSRS 对「今天只有 12 分钟」这种现实约束友好得多，正式版建议换掉</span></div>
+    <div class="gmode bad"><b>纯扫描件无法还原版面</b><span>双栏、表格、页眉页脚混排的文档，OCR 出来的顺序可能是乱的</span></div>
+  </div>`;
+
+  function render() {
+    const el = $('#guideBody');
+    if (!el || el.dataset.done) return;
+    el.innerHTML = GUIDE_HTML;
+    el.dataset.done = '1';
+    const start = $('#gStart');
+    if (start) start.onclick = () => {
+      const s = $('#loadSample'); if (s) s.click();
+      if (typeof switchTab === 'function') switchTab('import');
+    };
+    const replay = $('#gReplay');
+    if (replay) replay.onclick = () => openOnboarding(true);
+  }
+
+  window.Guide = { open: () => openOnboarding(true), render, close };
+
+  // 首次打开自动弹一次；已经导入过材料的老用户不打扰
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => setTimeout(maybe, 400));
+  } else { setTimeout(maybe, 400); }
+  function maybe() {
+    let used = false;
+    try {
+      used = !!(localStorage.getItem('allez_v1') || '').match(/"vocab":\[\s*\{/);
+    } catch (e) { /* 忽略 */ }
+    if (used) { try { localStorage.setItem(ONBOARD_KEY, '1'); } catch (e) { /* 忽略 */ } return; }
+    openOnboarding(false);
+  }
+})();
+
+</script>
+</body>
+</html>
