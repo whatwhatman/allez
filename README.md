@@ -2,7 +2,9 @@
 
 零依赖、零后端的单页应用。全部逻辑在浏览器里跑：法语词形还原、CEFR 分级、易错点检测、SM-2 间隔复习、PDF 文本层抽取、扫描件 OCR。**不接任何模型也能用**，接了会更聪明。
 
-- 成品单文件：`docs/index.html`（约 180 KB，拖进浏览器就能用）
+**在线地址：https://whatwhatman.github.io/allez/**
+
+- 成品单文件：`docs/index.html`（约 205 KB，拖进浏览器就能用）
 - 源码：`index.html` + `style.css` + `data.js` `pdftext.js` `ocr.js` `engine.js` `app.js` `guide.js`
 - 可选的共享代理：`worker/`（Cloudflare Workers，让你出 Key、访客免 Key）
 
@@ -81,8 +83,8 @@ GitHub Pages 在国内部分地区会慢或不稳。同一个仓库可以直接�
 
 把 `docs/index.html` 直接拖到 Netlify Drop（app.netlify.com/drop）或 EdgeOne Pages 的上传框，30 秒能拿到一个链接。缺点是每次更新都要手动重传。
 
-> 另有一条现成的预览地址可以直接看效果：**https://allez-french.app.workbuddy.host/**
-> 功能与文件内容完全一致，只是域名不属于你。等你自己的 Pages 跑起来之后，这个可以不用管。
+> 另有一条备用镜像：**https://allez-french.app.workbuddy.host/**
+> 内容与 GitHub Pages 上的完全一致，只是域名不属于你。正式地址跑起来之后，这条可以随时下线。
 
 ---
 
