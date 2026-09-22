@@ -83,8 +83,8 @@ GitHub Pages 在国内部分地区会慢或不稳。同一个仓库可以直接�
 
 把 `docs/index.html` 直接拖到 Netlify Drop（app.netlify.com/drop）或 EdgeOne Pages 的上传框，30 秒能拿到一个链接。缺点是每次更新都要手动重传。
 
-> 另有一条备用镜像：**https://allez-french.app.workbuddy.host/**
-> 内容与 GitHub Pages 上的完全一致，只是域名不属于你。正式地址跑起来之后，这条可以随时下线。
+> 早期曾用过一个临时预览站（域名不属于你）做对照，现已下线，不再需要。
+> 本项目今后**只在 GitHub Pages 上维护一个正式地址**。
 
 ---
 
