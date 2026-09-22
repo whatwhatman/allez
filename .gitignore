@@ -6,3 +6,6 @@ node_modules/
 
 # 别把实测用的个人材料混进来
 /downloads/
+
+# 实测用素材（杂志扫描件动辄上百 MB，不进版本库）
+sample/

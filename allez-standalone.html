@@ -2478,6 +2478,12 @@ Réponds uniquement avec le texte transcrit.`;
     const o = { logger: m => { if (onProgress && m.status) onProgress(Math.round((m.progress || 0) * 100), m.status); } };
     if (opts.langPath) o.langPath = opts.langPath;
     tessWorker = await global.Tesseract.createWorker(opts.lang || 'fra', 1, o);
+    // Tesseract 的 tessedit_pageseg_mode 默认值是 6（SINGLE_BLOCK，整页当成一整块文字），
+    // 不是命令行工具的 3。用默认值跑杂志/扫描页时，照片和广告插图的暗部会被当成
+    // 文字扫进来，整页变乱码。实测（France Illustration 1950 扫描页，2000px 宽）：
+    //   封面页 置信度 35→89，乱码词 645→88；文字页 置信度 68→82。
+    // 这里显式设为 3（AUTO，先做版面分析再识别）。
+    try { await tessWorker.setParameters({ tessedit_pageseg_mode: '3' }); } catch (e) { /* 老版本不支持就退回默认 */ }
     return tessWorker;
   }
 
