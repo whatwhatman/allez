@@ -1,12 +1,25 @@
 # Allez ! — 法语备考引擎
 
-零依赖、零后端的单页应用。全部逻辑在浏览器里跑：法语词形还原、CEFR 分级、易错点检测、SM-2 间隔复习、PDF 文本层抽取、扫描件 OCR。**不接任何模型也能用**，接了会更聪明。
+零依赖、零后端的单页应用。全部逻辑在浏览器里跑：法语词形还原、CEFR 分级、易错点检测、SM-2 间隔复习、PDF 文本层抽取、Office 文档解析、扫描件 OCR。**不接任何模型也能用**，接了会更聪明。
 
 **在线地址：https://whatwhatman.github.io/allez/**
 
 - 成品单文件：`docs/index.html`（约 205 KB，拖进浏览器就能用）
-- 源码：`index.html` + `style.css` + `data.js` `pdftext.js` `ocr.js` `engine.js` `app.js` `guide.js`
+- 源码：`index.html` + `style.css` + `data.js` `pdftext.js` `ocr.js` `office.js` `engine.js` `app.js` `guide.js`
 - 可选的共享代理：`worker/`（Cloudflare Workers，让你出 Key、访客免 Key）
+
+### 能上传哪些文件
+
+| 格式 | 支持情况 |
+|---|---|
+| PDF | 完整支持。有文字层直接抽；没有文字层的扫描件自动取页面图片交给 OCR |
+| Word `.docx` / PowerPoint `.pptx` / Excel `.xlsx` | 完整支持（自己解 zip + XML，无需联网） |
+| `.odt` / `.epub` / `.rtf` | 支持 |
+| `.doc` / `.ppt`（Word 97 / PowerPoint 97 旧格式） | **尽力提取**。这两个是二进制复合文档，没有干净的解析路径，靠扫描可读文本序列，可能有少量错字 —— 建议另存为 `.docx` / `.pptx` |
+| 图片 `.png` / `.jpg` / `.webp` | 直接走 OCR（讲义拍照、扫描 App 导出的单页） |
+| `.txt` / `.md` / `.csv` | 直接读取 |
+
+扩展名写错或没有扩展名也没关系：会按文件头重新认（zip 和 OLE2 各有固定魔数）。
 
 ---
 
@@ -92,7 +105,7 @@ GitHub Pages 在国内部分地区会慢或不稳。同一个仓库可以直接�
 
 ### 1. 完全不接（默认）
 
-能用：原文粘贴 / 上传 txt/md/csv/PDF → 抽词汇、标 CEFR、查易错点、六种练习模式、错词本、间隔复习、学习计划、进步报告、Tesseract 本地 OCR。
+能用：原文粘贴 / 上传 PDF、Word、PowerPoint、Excel、EPUB、RTF、图片、txt/md/csv → 抽词汇、标 CEFR、查易错点、六种练习模式、错词本、间隔复习、学习计划、进步报告、Tesseract 本地 OCR。
 
 做不到：中文释义只有约 400 条核心词有；受限阅读材料是模板生成的，不是真文章；主动输出的批改只有规则检查，做不了语体层面的润色。
 
@@ -206,6 +219,7 @@ node build.js          # 生成 docs/index.html 和 allez-standalone.html
 ```bash
 node smoke.js          # 引擎层：抽词、CEFR、变位、SM-2
 node ocr-smoke.js      # OCR 层：CCITT G4 解码、PDF 抽图、质量评估（45 项）
+node office-smoke.js   # 文件格式层：docx/pptx/xlsx/odt/rtf/doc 六种样本抽取（27 项）
 node dom-smoke.js      # 端到端：jsdom 里点完整流程（需 jsdom, pdf-lib, jszip）
 ```
 
@@ -219,7 +233,13 @@ node dom-smoke.js      # 端到端：jsdom 里点完整流程（需 jsdom, pdf-l
 - **CCITT G4 我手写的解码器**：浏览器没有原生支持，自己实现了 T.6（MMR）。测试覆盖了有代表性的用例（全白页、纯水平模式编码、随机条纹图的编解码往返一致），但没法和 libtiff 做大规模交叉验证 —— 遇到解码异常的扫描件请把文件发我。
 - **双栏版面的 OCR 顺序**：视觉模型按视觉顺序读，遇到报纸式双栏可能串行。单栏教材没问题。
 - **SM-2 应该换 FSRS**：现在的间隔算法是 1987 年的老公式，够用但不是最优。
-- **OCR 准确率未实测**：视觉模型那条路需要联网调 API，Tesseract 那条路要下 15 MB 模型，两条在当前环境都跑不了。第一次用请拿一份真扫描件试。
+- **OCR 已实测，主要短板是"行序"不是"认字"**：拿 1950 年法国周刊扫描件（Internet Archive）跑过，
+  词袋召回率 71–88%、有序匹配率只有 54–66% —— 说明字基本都认对了，是多栏/图注混排把阅读顺序打乱了
+  （Tesseract 只吐纯文本、不给坐标）。纯文字页最好，价格表之类密集小字最易错。
+- **旧版 `.doc` / `.ppt` 提取质量有限**：二进制复合文档，走的是扫描可读文本序列的尽力提取，
+  可能有错字和少量残渣，能凑合用但建议另存为新格式。
+- **JPEG 2000（JPXDecode）扫描件抽不出图**：Internet Archive 这类来源常用这种压缩，浏览器解不了。
+  自己用扫描仪 / 手机扫出来的一般是 JPEG 或 CCITT，不受影响。
 
 ---
 

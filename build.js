@@ -2,7 +2,7 @@
 const fs = require('fs'), path = require('path');
 let html = fs.readFileSync(path.join(__dirname, 'index.html'), 'utf8');
 const css = fs.readFileSync(path.join(__dirname, 'style.css'), 'utf8');
-let js = ['data.js', 'pdftext.js', 'ocr.js', 'engine.js', 'app.js', 'guide.js']
+let js = ['data.js', 'pdftext.js', 'ocr.js', 'office.js', 'engine.js', 'app.js', 'guide.js']
   .map(f => fs.readFileSync(path.join(__dirname, f), 'utf8')).join('\n;\n');
 
 /* 站主可选部署的共享代理。没给环境变量就不启用（占位符替换成空串）。

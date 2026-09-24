@@ -60,7 +60,7 @@
         <button class="btn" id="loadSample">载入示例课文</button>
       </div>
       <div style="align-self:flex-end">
-        <input type="file" id="fileInput" accept=".pdf,.txt,.md,.csv,.text,.png,.jpg,.jpeg,.webp,application/pdf,image/*" style="display:none">
+        <input type="file" id="fileInput" accept=".pdf,.docx,.doc,.pptx,.ppt,.xlsx,.odt,.epub,.rtf,.txt,.md,.csv,.text,.png,.jpg,.jpeg,.webp,application/pdf,image/*" style="display:none">
         <button class="btn" onclick="document.getElementById('fileInput').click()">上传文件</button>
       </div>
     </div>
@@ -68,7 +68,7 @@
     <div class="note hide" id="pdfProg"></div>
     <div id="ocrPanel"></div>
 
-    <textarea id="src" placeholder="在此粘贴法语材料，或者把 PDF 拖进来…&#10;&#10;例如：&#10;Je m'appelle Léa et j'habite à Lyon depuis trois ans.&#10;Le week-end, je vais souvent au marché avec ma voisine…"></textarea>
+    <textarea id="src" placeholder="在此粘贴法语材料，或者把 PDF / Word / PowerPoint / Excel / EPUB / RTF / 图片拖进来…&#10;&#10;例如：&#10;Je m'appelle Léa et j'habite à Lyon depuis trois ans.&#10;Le week-end, je vais souvent au marché avec ma voisine…"></textarea>
 
     <div class="row" style="margin-top:10px">
       <button class="btn pri" id="btnAnalyze">解析并生成考点图谱</button>

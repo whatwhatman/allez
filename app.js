@@ -203,6 +203,15 @@ async function handleFile(f) {
   const isImg = /^image\//.test(f.type || '') || /\.(png|jpe?g|webp|bmp|tiff?|heic)$/i.test(f.name || '');
   if (isImg) return await handleImage(f);
 
+  // Office / EPUB / RTF：docx、pptx 本质是 zip 包，当纯文本读会直接一屏乱码，必须走解析
+  const nm = f.name || '';
+  if (/\.(docx|pptx|xlsx|odt|epub|rtf|doc|ppt)$/i.test(nm)) return await handleOffice(f);
+  try {
+    // 扩展名不对（或干脆没有扩展名）时看文件头：PK = zip 系，D0CF11E0 = 老版 Office
+    const head = new Uint8Array(await f.slice(0, 4).arrayBuffer());
+    if ((head[0] === 0x50 && head[1] === 0x4b) || (head[0] === 0xd0 && head[1] === 0xcf)) return await handleOffice(f);
+  } catch (e) { /* 取不到文件头就按纯文本处理 */ }
+
   if (f.size > WARN_BYTES && !confirm(`纯文本文件有 ${fmtSize(f.size)}，解析会比较慢。继续？`)) return;
   const r = new FileReader();
   r.onload = () => {
@@ -262,6 +271,43 @@ async function handleImage(f) {
   setProg(`这是一张图片（${fmtSize(f.size)}），准备识别…`, true);
   $('#ocrPanel').innerHTML = '';
   await runOcr([{ blob: f, page: 1 }], f.name);
+}
+
+const OFFICE_LABEL = {
+  docx: 'Word 文档（.docx）', pptx: 'PowerPoint（.pptx）', xlsx: 'Excel 表格（.xlsx）',
+  odt: 'OpenDocument（.odt）', epub: 'EPUB 电子书', rtf: 'RTF 文档',
+  doc: 'Word 97 文档（.doc）', ppt: 'PowerPoint 97（.ppt）'
+};
+
+async function handleOffice(f) {
+  setProg(`正在解析 <b>${f.name}</b>（${fmtSize(f.size)}）…`, true);
+  await new Promise(r => setTimeout(r, 30));   // 让提示先画出来
+  try {
+    const bytes = new Uint8Array(await f.arrayBuffer());
+    const res = await window.Office.readFile(bytes, f.name || '', (pct, label) => {
+      setProg(`正在解析 <b>${f.name}</b> — ${label}`, true);
+    });
+    const text = (res.text || '').trim();
+
+    if (text.length < 20) {
+      setProg(`<b>${f.name}</b> 里没抽出可读正文${res.note ? '（' + res.note + '）' : ''}。
+        <br>常见情况：整份文件其实都是图片（扫描页、截图贴进 Word）。
+        <br>这种请把相关页面导出成图片或 PDF，再用 OCR 识别。`, true);
+      return;
+    }
+
+    $('#src').value = text.slice(0, MAX_TEXT);
+    updateSrcStat();
+    let note = `已从 <b>${OFFICE_LABEL[res.kind] || res.kind}</b> 提取 <b>${text.length}</b> 字符`;
+    if (res.note) note += '，' + res.note;
+    if (text.length > MAX_TEXT) note += `。超长部分已截断（保留前 ${MAX_TEXT} 字符）`;
+    if (res.kind === 'doc' || res.kind === 'ppt') note += '。想要更准，请另存为 .docx / .pptx 再传一次';
+    setProg(note + '。', true);
+    clearOcrPanel();
+  } catch (err) {
+    setProg(`<b>解析失败：</b>${err && err.message ? err.message : err}
+      <br>如果是加了密的文档，请先去掉密码；旧格式（.doc/.ppt）建议另存为 .docx / .pptx。`, true);
+  }
 }
 
 /* ========== OCR ========== */
