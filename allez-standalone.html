@@ -344,6 +344,10 @@ footer{color:var(--ink3);font-size:12px;text-align:center;padding:24px 0}
         <label class="fld">模型</label>
         <input type="text" id="apiModel" placeholder="自动填入">
       </div>
+      <div id="apiModelSelRow" class="hide">
+        <label class="fld">模型（免费公共 AI，挑一个）</label>
+        <select id="apiModelSel"></select>
+      </div>
     </div>
     <div class="note" id="presetNote" style="margin-top:12px"></div>
     <div class="row" style="margin-top:12px">
@@ -351,6 +355,10 @@ footer{color:var(--ink3);font-size:12px;text-align:center;padding:24px 0}
       <button class="btn" id="btnTestApi">测试连接</button>
       <span class="mut" id="apiStat"></span>
     </div>
+    <label class="row" style="margin-top:12px;align-items:center;gap:8px">
+      <input type="checkbox" id="autoZh" style="width:auto">
+      <span>解析材料后自动补齐缺失的中文释义（按词频取前 40 个，其余可手动继续）</span>
+    </label>
     <details style="margin-top:14px">
       <summary>为什么接了模型会强很多</summary>
       <p class="mut" style="margin-top:8px">三件事离线做不了：① 给每个词生成贴合你上下文的中文释义，而不是词典冷冰冰的义项；② 生成真正的「受限文本」——严格控制在已学词汇 + i+1 范围内的法语短文，这是词汇自然复现的关键；③ 对你主动输出的法语做 CEFR 级批改（语法、性数配合、语体），而不只是找拼写。</p>
@@ -3690,20 +3698,30 @@ const PROXY_BASE = '';
 const PROXY_MODEL = '';
 const hasProxy = () => /^https?:\/\//.test(PROXY_BASE);
 
-/* 到底能不能调用模型：自己有 Key，或者站主配了共享代理且访客选了它 */
-function hasLLM() { return !!S.api.key || (hasProxy() && S.api.preset === 'proxy'); }
+/* 到底能不能调用模型：免费公共 AI / 自己有 Key / 站主配了共享代理且访客选了它 */
+function isFreeAI() { return S.api.preset === 'free' || S.api.provider === 'free'; }
+function hasLLM() { return isFreeAI() || !!S.api.key || (hasProxy() && S.api.preset === 'proxy'); }
 
 const DEFAULT_STATE = () => ({
   exam: 'B1', examDate: '', rawText: '',
   vocab: [], grammar: [], cards: [], mode: 'recognize',
-  api: { provider: 'claude', base: '', key: '', model: '' },
+  api: { provider: 'free', base: '', key: '', model: 'openai-fast', preset: 'free' },
   ocr: { engine: 'auto', model: '', langPath: '', maxPages: 20 },
+  gloss: {},                       // 已经补过中文的词，跨材料复用，省得反复问模型
+  autoZh: true,                    // 解析后自动补齐中文释义
   stats: { reviews: 0, correct: 0 }, done: {}
 });
 
 let S = loadState() || DEFAULT_STATE();
 // 老版本存档没有 ocr 字段，补齐默认值，省得到处写判空
 S.ocr = Object.assign({ engine: 'auto', model: '', langPath: '', maxPages: 20 }, S.ocr || {});
+// 后加的字段同理：补过中文的词表、自动补释义开关、服务商预设
+S.gloss = S.gloss || {};
+if (S.autoZh === undefined) S.autoZh = true;
+if (!S.api.preset) {
+  S.api.preset = S.api.key ? 'custom' : (hasProxy() ? 'proxy' : 'free');
+  if (S.api.preset === 'free') S.api.model = S.api.model || 'openai-fast';
+}
 let Q = null;               // 当前题目
 let pendingCalibrate = false;
 
@@ -3713,6 +3731,23 @@ function save() { saveState(S); }
    让用户自己填 Endpoint 是最劝退的一步。这里把常见服务商的地址和模型预置好，
    选完之后只需要粘一个 Key。免费额度情况写在 note 里，不吹不瞒。 */
 const API_PRESETS = {
+  free: {
+    label: '免费公共 AI（什么都不用申请）',
+    provider: 'free', base: '', model: 'openai-fast', vision: '', shared: false,
+    models: [
+      ['openai-fast', 'GPT 快速版（默认，响应快）'],
+      ['openai-large', 'GPT 大模型（更准，稍慢）'],
+      ['qwen', '通义千问（中法互译较稳）'],
+      ['deepseek', 'DeepSeek'],
+      ['llama', 'Llama'],
+      ['mistral', 'Mistral']
+    ],
+    note: '<b>开箱即用：不用注册、不用填 Key，选好模型就能用。</b>' +
+      '走的是公开免费的公益推理服务，速度快慢取决于对方当时的负载，' +
+      '偶尔会连不上或变慢 —— 那是公共服务的正常波动，换一个模型通常就好了。<br>' +
+      '<b>请注意：请求内容会经过第三方服务器</b>，所以不要提交证件、病历、未公开试卷这类敏感材料；' +
+      '日常练习材料没问题。想要稳定、私密、更快，就在下面换成自己的 Key。'
+  },
   proxy: {
     label: '站内额度（不用自己申请 Key）',
     provider: 'openai', base: PROXY_BASE, model: PROXY_MODEL, vision: PROXY_MODEL, shared: true,
@@ -3776,11 +3811,30 @@ function applyPreset(key, fill) {
   const p = API_PRESETS[key] || API_PRESETS.custom;
   const noteEl = $('#presetNote');
   if (noteEl) noteEl.innerHTML = p.note;
-  // 共享代理模式下地址、模型、Key 都由服务端决定，摆在这只会让人困惑
-  ['#apiKeyRow', '#apiBaseRow', '#apiModelRow'].forEach(s => {
+
+  const isFree = key === 'free';
+  // 共享代理模式下地址、模型、Key 都由服务端决定，摆在这只会让人困惑；
+  // 免费公共 AI 不需要 Key 和 Endpoint，只留一个模型下拉
+  const hideKeyBase = !!p.shared || isFree;
+  ['#apiKeyRow', '#apiBaseRow'].forEach(s => {
     const el = $(s);
-    if (el) el.classList.toggle('hide', !!p.shared);
+    if (el) el.classList.toggle('hide', hideKeyBase);
   });
+  ['#apiModelRow'].forEach(s => {
+    const el = $(s);
+    if (el) el.classList.toggle('hide', !!p.shared || isFree);   // 免费 AI 用下拉，不用手填
+  });
+  const selRow = $('#apiModelSelRow');
+  if (selRow) {
+    selRow.classList.toggle('hide', !isFree);
+    const sel = $('#apiModelSel');
+    if (sel && isFree) {
+      const cur = (S.api.preset === 'free' && S.api.model) || p.model;
+      sel.innerHTML = (p.models || []).map(([v, t]) =>
+        `<option value="${v}"${v === cur ? ' selected' : ''}>${t}</option>`).join('');
+      if (fill) sel.value = p.model;
+    }
+  }
   if (!fill) return;
   if ($('#apiBase')) $('#apiBase').value = p.base;
   if ($('#apiModel')) $('#apiModel').value = p.model;
@@ -3808,18 +3862,30 @@ $$('#tabs button').forEach(b => b.onclick = () => switchTab(b.dataset.t));
   if (sel) {
     const keys = Object.keys(API_PRESETS).filter(k => k !== 'proxy' || hasProxy());
     sel.innerHTML = keys.map(k => `<option value="${k}">${API_PRESETS[k].label}</option>`).join('');
-    // 老存档没有 preset，按 base 反推，推不出来就当自定义
-    let guess = S.api.preset || (hasProxy() ? 'proxy' : 'custom');
-    if (!S.api.preset && S.api.base) {
+    // 老存档没有 preset：有 Key 的按 base 反推，一个都没有就直接给免费的（开箱即用）
+    let guess = S.api.preset || '';
+    if (!guess) {
+      if (hasProxy() && !S.api.key) guess = 'proxy';
+      else if (S.api.key) guess = 'custom';
+      else guess = 'free';
+    }
+    if (!S.api.preset && S.api.base && S.api.key) {
       guess = keys.find(k => API_PRESETS[k].base && S.api.base.indexOf(API_PRESETS[k].base.replace(/^https?:\/\//, '')) >= 0)
-        || (hasProxy() ? 'proxy' : 'custom');
+        || guess;
     }
     if (keys.indexOf(guess) < 0) guess = 'custom';
     sel.value = guess;
     sel.onchange = () => applyPreset(sel.value, true);
+    const msel = $('#apiModelSel');
+    if (msel) msel.onchange = () => { S.api.model = msel.value; };
     applyPreset(guess, false);
   }
   if (S.api) { $('#apiBase').value = S.api.base || ''; $('#apiKey').value = S.api.key || ''; $('#apiModel').value = S.api.model || ''; }
+  const az = $('#autoZh');
+  if (az) {
+    az.checked = S.autoZh !== false;
+    az.onchange = () => { S.autoZh = az.checked; save(); };
+  }
 }
 $('#exam').value = S.exam || 'B1';
 $('#examDate').value = S.examDate || '';
@@ -4135,17 +4201,149 @@ $('#btnAnalyze').onclick = async () => {
   $('#btnAnalyze').disabled = false; $('#btnAnalyze').textContent = '解析并生成考点图谱';
 
   const hits = v.filter(x => x.inDict).length;
+  const missing = v.filter(x => !x.zh).length;
+  const zhLine = missing === 0
+    ? '<br>所有词目都已有中文释义。'
+    : (hasLLM()
+      ? `<br>有 <b>${missing}</b> 个词还没有中文释义（离线词库只收录约 400 条核心词，专业词汇要靠模型补）。
+         <button class="btn fillZhBtn" style="margin-left:8px">补齐中文释义</button>`
+      : '<br>提示：释义为空是因为离线词库只有约 400 条核心词。到「设置」选一项（免费公共 AI 也行）即可自动补齐中文释义与等级校准。');
+
   const noteHtml = `<div class="note" style="margin-top:12px">
     解析完成：<b>${v.length}</b> 个候选词目，其中 <b>${hits}</b> 个命中内置词库（含中文释义与 CEFR 等级）；识别到 <b>${g.length}</b> 类语法结构。<br>
-    下一步：在这张表里勾选要背的词，或者直接点「加入最高频 50 个」。
-    ${hasLLM() ? '<br>模型已接入，释义与等级会由模型校准。' : ''}
-    ${!hasLLM() ? '<br>提示：释义为空是因为离线词库只有约 400 条核心词。到「设置」接入模型后会自动补齐中文释义与等级校准。' : ''}
+    下一步：在这张表里勾选要背的词，或者直接点「加入最高频 50 个」。${zhLine}
   </div>`;
   $('#importNote').innerHTML = noteHtml;
   $('#mapNote').innerHTML = noteHtml;
   renderMap();
   switchTab('map');
+
+  // 开了开关就顺手把这批补上，省得用户再点一次。
+  // 免费服务每批要 15–35 秒，自动阶段只补最高频的 24 个控制首屏等待，剩下的点按钮继续。
+  if (S.autoZh !== false && missing > 0 && hasLLM()) await runFillZh(24);
 };
+
+/* ---------------- 自动补齐中文释义 ----------------
+   离线词库只有几百条核心词，专业材料（工程制图、医学、法律…）几乎必然大量缺释义。
+   这里按批把缺的词丢给模型，一次 8 个、带上原文里的上下文，
+   既省请求次数，也让模型能选对义项（dessin 到底是"制图"还是"素描"，看句子就知道）。 */
+/* 批量大小是实测调出来的：免费服务走 GET，prompt 要塞进 URL。
+   一个汉字 UTF-8 编码后会变成 %XX%XX%XX 共 9 个字符，中文指令会让 URL 瞬间翻三倍，
+   直接把对方拖超时 —— 所以下面这段指令特意写成英文，只有输出要求是中文。 */
+const ZH_BATCH = 6;
+const ZH_CTX = 42;
+
+function escapeRe(s) { return String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+
+function findContext(lemma, text) {
+  if (!text) return '';
+  const i = text.search(new RegExp('\\b' + escapeRe(lemma), 'i'));
+  if (i < 0) return '';
+  return text.slice(Math.max(0, i - 30), Math.min(text.length, i + lemma.length + 45))
+    .replace(/\s+/g, ' ').trim();
+}
+
+function materialDomain() {
+  const first = (S.rawText || '').split('\n').map(s => s.trim()).find(s => s.length > 8);
+  return first ? first.slice(0, 70) : '';
+}
+
+function buildZhPrompt(batch) {
+  const dom = materialDomain();
+  const lines = batch.map((b, i) => `${i + 1}. ${b.lemma}${b.ctx ? ' [ex: ' + b.ctx + ']' : ''}`).join('\n');
+  // 指令用英文写（见上面 ZH_BATCH 的注释），只有结果要求中文
+  return `You are a French-Chinese dictionary. For each French word below output ONLY its Simplified Chinese meaning, one per line, same order. No numbers, no pinyin, no explanation, no examples.
+${dom ? 'Domain of the source text: ' + dom + '. Pick the sense that fits this domain.\n' : ''}
+${lines}`;
+}
+
+function parseZhReply(raw, n) {
+  const out = [];
+  String(raw || '').split('\n').forEach(l => {
+    let t = l.trim()
+      .replace(/^\s*(?:\d+\s*[.、)]|[-•*])\s*/, '')   // 去掉 "1. " "1、" "- " 之类
+      .replace(/^\s*[*"'`]+|[*"'`]+\s*$/g, '')        // 去掉模型爱加的引号星号
+      .trim();
+    if (/[：:]/.test(t) && !/[一-龥]/.test(t.split(/[：:]/)[0])) t = t.replace(/^[^：:]*[：:]\s*/, '');
+    if (/[<>{}]/.test(t)) return;                  // 混进来的标签碎片，别当释义
+    if (t) out.push(t.slice(0, 24));
+  });
+  return out.slice(0, n);
+}
+
+// 返回「失败了几批」。公共服务的失败是间歇性的，某一批挂了不该让整轮白干，
+// 所以这里只跳过失败的批次，成功的部分照常入库。
+async function fillZh(words, onProg) {
+  let failed = 0;
+  for (let i = 0; i < words.length; i += ZH_BATCH) {
+    const batch = words.slice(i, i + ZH_BATCH)
+      .map(w => ({ lemma: w.lemma, ctx: findContext(w.lemma, S.rawText).slice(0, ZH_CTX) }));
+    const done = Math.min(i + ZH_BATCH, words.length);
+    if (onProg) onProg(0, `正在查第 ${i + 1}–${done} / ${words.length} 个词…`);
+    try {
+      let raw = '';
+      try {
+        raw = await callLLM(buildZhPrompt(batch), 400);
+      } catch (e1) {
+        if (onProg) onProg(0, `第 ${i + 1}–${done} 个词超时，重试中…`);
+        await new Promise(r => setTimeout(r, 1500));
+        raw = await callLLM(buildZhPrompt(batch), 400);   // 再失败就计入 failed
+      }
+      const res = parseZhReply(raw, batch.length);
+      if (!res.length) throw new Error('没能解析出释义');
+      batch.forEach((b, k) => { if (res[k]) S.gloss[b.lemma] = res[k]; });
+    } catch (e) {
+      failed++;
+      if (onProg) onProg(0, `第 ${i + 1}–${done} 个词没查到，先跳过`);
+    }
+    save();
+  }
+  return failed;
+}
+
+function applyGloss() {
+  let n = 0;
+  S.vocab.forEach(v => { if (!v.zh && S.gloss[v.lemma]) { v.zh = S.gloss[v.lemma]; n++; } });
+  return n;
+}
+
+async function runFillZh(limit) {
+  const words = S.vocab.filter(v => !v.zh).sort((a, b) => b.count - a.count).slice(0, limit || 40);
+  if (!words.length) return 0;
+  let btns = $$('.fillZhBtn');
+  if (!btns.length) {   // 从表格页手动触发时，提示区可能没有按钮，临时插一个承载进度
+    const holder = document.createElement('div');
+    holder.className = 'note';
+    holder.innerHTML = '<button class="btn fillZhBtn">补齐中文释义</button>';
+    const box = $('#mapNote');
+    if (box && box.parentNode) box.parentNode.insertBefore(holder, box.nextSibling);
+    btns = $$('.fillZhBtn');
+  }
+  const setLabel = t => btns.forEach(b => { b.textContent = t; });
+  btns.forEach(b => { b.disabled = true; });
+  setLabel('正在查第 1 个词…');
+  const failed = await fillZh(words, (pct, label) => setLabel(label));
+  const n = applyGloss();
+  save(); renderMap();
+  if (n > 0) {
+    setLabel(failed
+      ? `已补齐 ${n} 个词，另有 ${failed} 批没连上，点这里重试`
+      : `已补齐 ${n} 个词`);
+    if (failed) btns.forEach(b => { b.disabled = false; });
+  } else {
+    setLabel('一个都没查到，点这里重试');
+    btns.forEach(b => { b.disabled = false; });
+    alert('免费服务这会儿没响应。可以：\n1) 再点一次（公共服务是间歇性的，重试通常就好）\n'
+      + '2) 到「设置」换个免费模型\n3) 或者填你自己的 Key，最稳');
+  }
+  return n;
+}
+
+// 提示区可能被重复渲染，用事件委托绑一次就够了
+document.addEventListener('click', e => {
+  const t = e.target;
+  if (t && t.classList && t.classList.contains('fillZhBtn')) runFillZh(120);
+});
 
 function renderMap() {
   if (!S.vocab.length) switchTab('import');
@@ -4602,9 +4800,34 @@ function renderSLA() {
 }
 
 /* ---------------- 远程模型（可选） ---------------- */
+/* 免费公共 AI：不需要 Key，但只提供 GET 形式的文本接口（POST 端点在不少网络里连不上）。
+   代价是 prompt 要走 URL，所以调用方必须自己把请求压短 —— 见 fillZh 的分批策略。 */
+async function callFreeAI(prompt, model) {
+  const url = 'https://text.pollinations.ai/' + encodeURIComponent(prompt)
+    + '?model=' + encodeURIComponent(model || 'openai-fast');
+  const ctl = typeof AbortController !== 'undefined' ? new AbortController() : null;
+  const timer = ctl ? setTimeout(() => ctl.abort(), 30000) : null;
+  try {
+    const r = await fetch(url, ctl ? { signal: ctl.signal } : undefined);
+    const t = (await r.text()).trim();
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    // 网络被拦、对方限流、或者代理插了一脚时，拿到的常常是 200 + 一个 HTML 页面。
+    // 不挡住的话，<html> 会被当成中文释义写进词表。
+    if (!t) throw new Error('对方返回了空内容');
+    if (/^\s*<(!doctype|html|!--)/i.test(t) || /<html[\s>]/i.test(t) || /\bcloudflare\b/i.test(t.slice(0, 400))) {
+      throw new Error('对方返回的是网页而不是结果（通常是限流或网络拦截）');
+    }
+    return t;
+  } catch (e) {
+    if (e && e.name === 'AbortError') throw new Error('免费服务超时了（多半是对方在排队）。换个模型再试，或者在「设置」里换成自己的 Key。');
+    throw new Error('免费服务连不上：' + (e && e.message ? e.message : e) + '。换个模型再试，或者在「设置」里换成自己的 Key。');
+  } finally { if (timer) clearTimeout(timer); }
+}
+
 async function callLLM(prompt, maxTokens = 1200) {
   const a = S.api;
   if (!hasLLM()) throw new Error('未配置 API Key');
+  if (isFreeAI()) return await callFreeAI(prompt, a.model || 'openai-fast');
   const shared = !a.key && a.preset === 'proxy';   // 共享代理：由服务端带 Key，这里不能塞空的 authorization
   if (a.provider === 'claude') {
     const base = (a.base || 'https://api.anthropic.com').replace(/\/$/, '');
@@ -4642,9 +4865,14 @@ function currentProvider() {
   return (API_PRESETS[k] || API_PRESETS.custom).provider;
 }
 function readApiForm() {
+  const preset = $('#apiPreset') ? $('#apiPreset').value : 'custom';
+  // 免费公共 AI 的模型在下拉里选，其余服务商手填
+  const model = (preset === 'free' && $('#apiModelSel'))
+    ? $('#apiModelSel').value
+    : ($('#apiModel') ? $('#apiModel').value.trim() : '');
   return {
     provider: currentProvider(), base: $('#apiBase').value.trim(),
-    key: $('#apiKey').value.trim(), model: $('#apiModel').value.trim()
+    key: $('#apiKey').value.trim(), model
   };
 }
 $('#btnSaveApi').onclick = () => {
@@ -4652,6 +4880,8 @@ $('#btnSaveApi').onclick = () => {
   S.api.preset = $('#apiPreset') ? $('#apiPreset').value : 'custom';
   // 预设顺手填的视觉模型一并存下来，免得用户还得再去 OCR 那栏点一次保存
   if ($('#ocrModel') && $('#ocrModel').value.trim()) S.ocr.model = $('#ocrModel').value.trim();
+  const az = $('#autoZh');
+  if (az) S.autoZh = az.checked;
   save(); toast('已保存到本机浏览器');
 };
 $('#btnTestApi').onclick = async () => {

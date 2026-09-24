@@ -206,6 +206,10 @@
         <label class="fld">模型</label>
         <input type="text" id="apiModel" placeholder="自动填入">
       </div>
+      <div id="apiModelSelRow" class="hide">
+        <label class="fld">模型（免费公共 AI，挑一个）</label>
+        <select id="apiModelSel"></select>
+      </div>
     </div>
     <div class="note" id="presetNote" style="margin-top:12px"></div>
     <div class="row" style="margin-top:12px">
@@ -213,6 +217,10 @@
       <button class="btn" id="btnTestApi">测试连接</button>
       <span class="mut" id="apiStat"></span>
     </div>
+    <label class="row" style="margin-top:12px;align-items:center;gap:8px">
+      <input type="checkbox" id="autoZh" style="width:auto">
+      <span>解析材料后自动补齐缺失的中文释义（按词频取前 40 个，其余可手动继续）</span>
+    </label>
     <details style="margin-top:14px">
       <summary>为什么接了模型会强很多</summary>
       <p class="mut" style="margin-top:8px">三件事离线做不了：① 给每个词生成贴合你上下文的中文释义，而不是词典冷冰冰的义项；② 生成真正的「受限文本」——严格控制在已学词汇 + i+1 范围内的法语短文，这是词汇自然复现的关键；③ 对你主动输出的法语做 CEFR 级批改（语法、性数配合、语体），而不只是找拼写。</p>
